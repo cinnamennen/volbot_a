@@ -119,7 +119,7 @@ class TestBot(irc.bot.SingleServerIRCBot):
     @Command("shakespeare")
     def cmd_shakespeare(self, sender, channel, cmd, args):
         """shakespeare\nGenerate some classic literature.."""
-        self.privmsg(channel, self.shakespeare.make_sentence())
+        self.privmsg(channel, self.shakespeare.make_short_sentence(500))
 
 
     @Command("insult")
