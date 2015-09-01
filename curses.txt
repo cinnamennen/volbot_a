@@ -1,0 +1,206 @@
+c__builtin__
+set
+p1
+((lp2
+VMAY THE FLEAS OF A THOUSAND CAMELS INFEST YOUR ARMPITS BY NIGHTFALL
+p3
+aVMay a car always block you when your turning.
+p4
+aVMay the website you need for work be in 10 year old, unmaintained Flash
+p5
+aVMay your upstairs apartment neighbors always wear their fancy leaden boots to their at home bowling practice.
+p6
+aVMay you poor a bowl of cereal then as you open the fridge realize that you are out of milk.
+p7
+aVMay you never remember these curses when you try to.
+p8
+aVMay your broken nail always snag on fabrics
+p9
+aVMay all your youtube searches have the little ad link pop up a half second after the page loads and you click on it on accident
+p10
+aVMay Reddit's servers always be busy
+p11
+aVMay you never remember where you left your keys.
+p12
+aVMay your in laws be to you as you have been to me.
+p13
+aVMay the tingling in your nose never come out as a sneeze.
+p14
+aVMay you never get that song out of your head.
+p15
+aVMay whenever you watch a movie on cable, they cut out your favorite scene
+p16
+aVMay every written post/response over 140 characters instantly vanish upon hitting "submit"
+p17
+aVMay you never know what shoes to wear with your dress.
+p18
+aVMay one card always disappear from any deck you touch
+p19
+aVMay people always know if you are actually listening to music in your headphones
+p20
+aVMay You Wipe A Thousand Times Before It Comes Back Clean
+p21
+aVMay your marinara sauce never cling to your pasta!
+p22
+aVMay your mechanic become rich
+p23
+aVMay people always greet you with a sweaty handshake.
+p24
+aVMay your crabs have superpowers.
+p25
+aVMay your legs always stick to your chair when you try to stand up.
+p26
+aVMay the fleas of one thousand camels infest your crotch and your arms grow too short to scratch.
+p27
+aVMay every cork disintegrate into your wine upon opening.
+p28
+aVMay all of your steps land on LEGO bricks
+p29
+aVMay all your garbage bags leak an unknown substance when going to the dumpster.
+p30
+aVMay you always think about your breathing.
+p31
+aVMay Adobe Updater be forever interrupting your web browsing.
+p32
+aVMay the vacuum cleaner always turn on while you're holding a claw-happy cat
+p33
+aVMay your cat always act content when you pet it and then suddenly attack you without warning.
+p34
+aVMay you never have enough toilet paper to finish properly wiping.
+p35
+aVMay all your farts have lumps.
+p36
+aVMay you always leave one red sock in your load of white laundry.
+p37
+aVMay you be thirsty but all you have is water.
+p38
+aVMay you always find a hair in your soup.
+p39
+aVYour hard drive. May it fail with important data.
+p40
+aVMay you always pick up a drink with an improper amount of force.
+p41
+aVMay your children be just like you.
+p42
+aVMay somebody always speak to you whilst you are wearing headphones, and as soon as you refocus on whatever you're listening too, they start speaking again.
+p43
+aVMay all your checkbooks be novelty
+p44
+aVMay you always have to pee when laying down
+p45
+aVMay you always find a Skittle mixed into a handful of M&Ms
+p46
+aVMay every screw you encounter be stripped.
+p47
+aVMay you always forget to click save
+p48
+aVMay your foot catch on the edge of every stair.
+p49
+aVMay your login information disappear after every false attempt!
+p50
+aVMay you have mosquito bites in between your toes.
+p51
+aVMay your Apple chargers always fray, cursing you to a infinite wire-rotating hell.
+p52
+aVMay your Google search history be publicly shared every time you log in to a social media site.
+p53
+aVMay your dog never get the hang of potty training.
+p54
+aVMay your life be as pleasant as you are.
+p55
+aVMay all your bacon burn
+p56
+aVMay your work always be unsaved.
+p57
+aVMay your afterlife be worse than you expected.
+p58
+aVMay your five year old neighbour have their violin lesson during all of your hangovers.
+p59
+aVMay you always forget the punchline of a joke after you start telling it
+p60
+aVMay you never be quite certain as to whether that pressure is a fart or poop.
+p61
+aVMay your favorite foods always taste like your least favorite
+p62
+aVMay the clothing stores you visit carry everything but your size.
+p63
+aVMay a pair of slow walkers block your path every time you have to be somewhere in a hurry.
+p64
+aVMay you always read my username and do as it says.
+p65
+aVMay you always forget your cutlery after you have sat down.
+p66
+aVMay the inside of your ear itch where your fingers cannot reach.
+p67
+aVMay the lemon juice always find your paper cut.
+p68
+aVMay you never recognize the song which keeps playing in your head.
+p69
+aVMay you always have a little less toilet paper than you need.
+p70
+aVMay you be ticketed for going one mile over the speed limit.
+p71
+aVMay all your dreams feel 100 hours long and be entirely black
+p72
+aVMay you leave your laptop to charge overnight without noticing the chord isn't plugged into the wall.
+p73
+aVMay you always feel like you must sneeze, and you never sneeze.
+p74
+aVMay your belt loop catch every door handle, and your headphones every drawer knob.
+p75
+aVMay every soda you drink be shaken up.
+p76
+aVMay you never be able to clear your throat.
+p77
+aVMay your farts smell great but be extremely loud.
+p78
+aVMay you always be plagued by awkward thoughts immediately before sleep.
+p79
+aVMay you successfully descend 99 stairs and slip and fall on the 100th.
+p80
+aVMay your marinara never stick to your pasta.
+p81
+aVMay you always think of a good submission to this subreddit, and then find out someone else has already submitted it!
+p82
+aVMay you always miss your chair when you go to sit down
+p83
+aVMay you always have a sliver in your sock.
+p84
+aVMay you always fall off your longboard as you fly by me on your way to class
+p85
+aVMay you always forget to capitalize your passwords
+p86
+aVMay every time you walk into a room you forget what you were doing.
+p87
+aVMay your errors always be in runtime.
+p88
+aVMay all your Facebook notifications be game invites.
+p89
+aVMay your elevator always go the opposite direction than desired and may the keys always be questionably sticky.
+p90
+aVMay your ass be itchy but your arms too short to reach it.
+p91
+aVMay the one they call Yeesus actually rule your country in 2020.
+p92
+aVMay subway run out of cheese whenever you order
+p93
+aVMay your Wi-Fi signal be strong and your connection slow
+p94
+aVMay the car in front of you be driven by a tourist just seeing the sights when you are in a hurry
+p95
+aVMay your tv volume always be set on a prime number.
+p96
+aVMay you always forget you put something in the microwave
+p97
+aVMay you always get that feeling of your smartphone vibrating in your pocket
+p98
+aVMay the cheese on your burger never be properly melted
+p99
+aVMay you live long enough to watch your children die.
+p100
+aVMay your internet always freeze as you approach an enemy in an online FPS.
+p101
+aVMay your expiration dates be far too late.
+p102
+atRp103
+.
