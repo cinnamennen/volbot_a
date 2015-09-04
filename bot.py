@@ -10,6 +10,8 @@ from string import letters, digits, punctuation
 
 
 class Command:
+    """Decorator that automatically registers functions as command handlers"""
+
     def __init__(self, label):
         self.label = label
 
@@ -18,6 +20,8 @@ class Command:
         return func
 
 class Trigger:
+    """Decorator that automatically registers functions as trigger handlers"""
+
     def __init__(self, pattern):
         self.pattern = pattern
 
@@ -32,35 +36,45 @@ class TestBot(irc.bot.SingleServerIRCBot):
 
         self.channel = channel
 
+        # initialize shakespearean generator
         with open('shake2.txt') as f:
             self.shakespeare = markovify.Text(f.read())
 
+        # setup commands and triggers
         self.commands = {}
         self.triggers = []
         self.register_stuff()
 
 
     def on_nicknameinuse(self, conn, e):
+        """Handle when our nickname is already taken"""
         conn.nick(conn.get_nickname() + "_")
 
 
     def on_welcome(self, conn, e):
+        """Handle successful connection to IRC server"""
         conn.join(self.channel)
 
 
     def on_privmsg(self, conn, e):
+        """Handle a private message"""
+        # Just run PMs as commands
         msg = e.arguments[0]
         parts = msg.split(' ')
         self.do_command(e, e.source.nick, parts[0], parts[1:])
 
 
     def on_pubmsg(self, conn, e):
+        """Handle a message in a channel"""
         msg = e.arguments[0]
+
+        # if message is a command addressed to us, handle it
         if msg.lower().startswith('!' + conn.get_nickname().lower()):
             parts = msg.split(' ')
             if len(parts) > 1:
                 self.do_command(e, e.target, parts[1], parts[2:])
         else:
+            # otherwise, check if the message matches any trigger patterns
             for pattern, handler in self.triggers:
                 if pattern.match(msg):
                     handler(e.source.nick, e.target, msg)
@@ -68,8 +82,12 @@ class TestBot(irc.bot.SingleServerIRCBot):
     
     @Trigger(r"^.*https?://[^\s]+.*$")
     def on_link(self, sender, channel, msg):
+        """Trigger handler for website links"""
+
+        # find all links in the message
         links = re.findall(r"https?://[^\s]+", msg)
         for link in links:
+            # scrape the title of the webpage and send it to the channel
             try:
                 resp = requests.get(link).text
                 title = re.search(r"<title>(.*)</title>", resp).groups()[0]
@@ -83,27 +101,32 @@ class TestBot(irc.bot.SingleServerIRCBot):
     @Command("curse")
     def cmd_curse(self, sender, channel, cmd, args):
         """curse <nick>\nPut a curse on <nick>."""
+        # default to sender if they didn't specify a target
         if len(args) > 0:
             victim = args[0]
         else:
             victim = sender
 
+        # load curses
         with open('curses.txt', 'r') as f:
             curses = list(cPickle.load(f))
-        curse = random.choice(curses)
 
-        self.privmsg(channel, "%s: %s" % (victim, curse))
+        # send a random curse
+        self.privmsg(channel, "%s: %s" % (victim, random.choice(curses)))
 
 
     @Command("help")
     def cmd_help(self, sender, channel, cmd, args):
         """You're already using it!"""
+
+        # if no args, just list commands
         if len(args) == 0:
             cmdlist = "commands: %s" % ', '.join(self.commands.keys())
             self.privmsg(channel, "Use help <command> to learn about a specific command.")
             self.privmsg(channel, cmdlist)
             return
 
+        # otherwise, give help on that specific command
         helpcmd = args[0]
         if helpcmd.lower() in self.commands:
             docs = self.commands[helpcmd.lower()].__doc__
@@ -151,6 +174,7 @@ class TestBot(irc.bot.SingleServerIRCBot):
         ]
 
         if victim.lower() not in ['volbot', 'joecon']:
+            # can't say anything mean about the creator :P
             insult = random.choice(insults).replace('<nick>', victim)
             self.privmsg(channel, insult)
         else:
@@ -159,19 +183,29 @@ class TestBot(irc.bot.SingleServerIRCBot):
             
 
     def do_command(self, e, target, cmd, args):
+        """Find the appropriate command handler and call it"""
         nick = e.source.nick
         conn = self.connection
 
+        # check if command exists
         if cmd.lower() in self.commands:
+            # if so, look up and call the command handler
             handler = self.commands[cmd.lower()]
             handler(nick, target, cmd, args)
         else:
+            # otherwise print an error message
             self.privmsg(target, "what?")
 
 
     def register_stuff(self):
+        """Automatically find and store command/trigger handlers"""
+
+        # enumerate all properties of this object
         for attr in dir(self):
             obj = getattr(self, attr)
+
+            # check if each property is a command or trigger handler
+            # if so, store it in the appropriate place
             if hasattr(obj, "cmd_label"):
                 label = getattr(obj, "cmd_label")
                 print 'registered %s' % label
@@ -183,12 +217,15 @@ class TestBot(irc.bot.SingleServerIRCBot):
 
 
     def privmsg(self, target, msg):
+        """Send a message to a target, split by newlines automatically"""
         lines = msg.split('\n')
         for line in lines:
             self.connection.privmsg(target, line)
 
 
 def main():
+
+    # get command line args
     import sys
     if len(sys.argv) != 4:
         print("Usage: testbot <server[:port]> <channel> <nickname>")
@@ -207,6 +244,7 @@ def main():
     channel = sys.argv[2]
     nickname = sys.argv[3]
 
+    # run the bot
     bot = TestBot(channel, nickname, server, port)
     bot.start()
 
