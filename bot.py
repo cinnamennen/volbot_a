@@ -4,6 +4,7 @@ import markovify
 import random
 import re
 import requests
+import wikipedia
 
 
 from string import letters, digits, punctuation
