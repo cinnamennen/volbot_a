@@ -182,6 +182,35 @@ class TestBot(irc.bot.SingleServerIRCBot):
             insult = random.choice(compliments).replace('<nick>', victim)
             self.privmsg(channel, insult)
             
+    @Command("tellmeabout")
+    def cmd_tellmeabout(self, sender, channel, cmd, args):
+        """tellmeabout <thing>\nGet basic info on <thing>."""
+
+	    #get the thing to search for
+        query = ""
+        if len(args) > 0:
+            #Get total query
+            query += args[0]
+            for i in range(1, len(args)):
+                query += " " + args[i]
+        else:
+            #otherwise get a random page
+            random = wikipedia.random(1)
+            query = random[0]
+
+        try:
+            #3 sentence limit. Can be extended later
+            summary = wikipedia.summary(query, 3)
+            #this is going to seem rather elaborate, but it is 
+            #essentially to make sure I can send 3 sentences 
+            #where the text wraps. Since the max message I can 
+            #send is 512 bytes, so I will limit it by like every 12 words or so.
+            summary = summary.split(" ")
+            for i in range(0, len(summary) % 12):
+                message = ' '.join(summary[i*12:(i*12 + min(12, len(summary) - i*12))])
+                self.privmsg(channel, message)
+        except:
+            self.privmsg(channel, "Sorry, can't find that.")
 
     def do_command(self, e, target, cmd, args):
         """Find the appropriate command handler and call it"""
