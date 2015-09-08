@@ -201,14 +201,7 @@ class TestBot(irc.bot.SingleServerIRCBot):
         try:
             #3 sentence limit. Can be extended later
             summary = wikipedia.summary(query, 3)
-            #this is going to seem rather elaborate, but it is 
-            #essentially to make sure I can send 3 sentences 
-            #where the text wraps. Since the max message I can 
-            #send is 512 bytes, so I will limit it by like every 12 words or so.
-            summary = summary.split(" ")
-            for i in range(0, len(summary) % 12):
-                message = ' '.join(summary[i*12:(i*12 + min(12, len(summary) - i*12))])
-                self.privmsg(channel, message)
+            self.privmsg(channel, summary)
         except:
             self.privmsg(channel, "Sorry, can't find that.")
 
