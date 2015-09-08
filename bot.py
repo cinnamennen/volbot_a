@@ -81,6 +81,12 @@ class TestBot(irc.bot.SingleServerIRCBot):
                 if pattern.match(msg):
                     handler(e.source.nick, e.target, msg)
 
+    @Trigger("^.*$")
+    def on_table_flip(self, sender, channel, msg):
+        """Trigger handler for table flipping"""
+        if u'\u253B' in msg:
+            self.privmsg(channel, u"\u252C\u2500\u252C\u30CE(\xBA_\xBA\u30CE)")
+
     
     @Trigger(r"^.*https?://[^\s]+.*$")
     def on_link(self, sender, channel, msg):
