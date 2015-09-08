@@ -250,7 +250,26 @@ class TestBot(irc.bot.SingleServerIRCBot):
         """Send a message to a target, split by newlines automatically"""
         lines = msg.split('\n')
         for line in lines:
-            self.connection.privmsg(target, line)
+            self.send_split(target, line)
+
+    def send_split(self, target, text):
+        """Send a single line to a target, splitting by maximum line length"""
+        MAX_LEN = 510 # 512 bytes - 2 for CR-LF
+
+        words = line.split(" ")
+        parts = []
+
+        for word in words:
+            for i in xrange(0, len(word), MAX_LEN):
+                parts.append(word[i:i+MAX_LEN])
+
+        line = ""
+        for word in parts:
+            if len(line) + len(word) <= MAX_LEN:
+                line += word
+            else:
+                self.connection.privmsg(target, line)
+                line = word
 
 
 def main():
