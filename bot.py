@@ -5,6 +5,7 @@ import random
 import re
 import requests
 import wikipedia
+import urbandict # https://github.com/novel/py-urbandict
 
 
 from string import letters, digits, punctuation
@@ -79,6 +80,12 @@ class TestBot(irc.bot.SingleServerIRCBot):
             for pattern, handler in self.triggers:
                 if pattern.match(msg):
                     handler(e.source.nick, e.target, msg)
+
+    @Trigger("^.*$")
+    def on_table_flip(self, sender, channel, msg):
+        """Trigger handler for table flipping"""
+        if u'\u253B' in msg:
+            self.privmsg(channel, u"\u252C\u2500\u252C\u30CE(\xBA_\xBA\u30CE)")
 
     
     @Trigger(r"^.*https?://[^\s]+.*$")
@@ -184,15 +191,12 @@ class TestBot(irc.bot.SingleServerIRCBot):
             
     @Command("tellmeabout")
     def cmd_tellmeabout(self, sender, channel, cmd, args):
-        """tellmeabout <thing>\nGet basic info on <thing>."""
+        """tellmeabout [thing]\nGet basic info on <thing>."""
 
 	    #get the thing to search for
-        query = ""
         if len(args) > 0:
             #Get total query
-            query += args[0]
-            for i in range(1, len(args)):
-                query += " " + args[i]
+            query = " ".join(args)
         else:
             #otherwise get a random page
             random = wikipedia.random(400)
@@ -225,6 +229,25 @@ class TestBot(irc.bot.SingleServerIRCBot):
             self.privmsg(target, "what?")
 
 
+    @Command("ud")
+    def cmd_ud(self, sender, channel, cmd, args):
+        """ud [word]\nLook up a word on Urban Dictionary."""
+
+        if len(args) > 0:
+            query = " ".join(args)
+        else:
+            query = urbandict.TermTypeRandom()
+
+        try:
+            result = urbandict.define(query)[0]
+            resp = '%s\n"%s"' % (result['def'], result['example'].strip())
+
+            self.privmsg(channel, result['word'])
+            self.privmsg(channel, resp)
+        except:
+            self.privmsg(channel, "Sorry, can't find that.")
+
+
     def register_stuff(self):
         """Automatically find and store command/trigger handlers"""
 
@@ -248,6 +271,7 @@ class TestBot(irc.bot.SingleServerIRCBot):
         """Send a message to a target, split by newlines automatically"""
         lines = msg.split('\n')
         for line in lines:
+            
             self.send_split(target, line)
 
     def send_split(self, target, text):
@@ -262,6 +286,9 @@ class TestBot(irc.bot.SingleServerIRCBot):
         for word in words:
             for i in xrange(0, len(word), MAX_LEN):
                 parts.append(word[i:i+MAX_LEN])
+
+        if len(parts) == 0:
+            return 
 
         line = parts[0]
         for word in parts[1:]:
