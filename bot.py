@@ -195,14 +195,14 @@ class TestBot(irc.bot.SingleServerIRCBot):
                 query += " " + args[i]
         else:
             #otherwise get a random page
-            random = wikipedia.random(1)
+            random = wikipedia.random(400)
             query = random[0]
 
         try:
             #3 sentence limit. Can be extended later
             summary = wikipedia.summary(query, 3)
             self.privmsg(channel, summary)
-        except:
+        except wikipedia.exceptions.WikipediaException:
             self.privmsg(channel, "Sorry, can't find that.")
 
     def do_command(self, e, target, cmd, args):
@@ -247,7 +247,9 @@ class TestBot(irc.bot.SingleServerIRCBot):
 
     def send_split(self, target, text):
         """Send a single line to a target, splitting by maximum line length"""
-        MAX_LEN = 510 # 512 bytes - 2 for CR-LF
+        MAX_LEN = 400 # fuck it
+
+        text = text.encode('utf-8')
 
         words = text.split(" ")
         parts = []
@@ -256,13 +258,16 @@ class TestBot(irc.bot.SingleServerIRCBot):
             for i in xrange(0, len(word), MAX_LEN):
                 parts.append(word[i:i+MAX_LEN])
 
-        line = ""
-        for word in parts:
-            if len(line) + len(word) <= MAX_LEN:
-                line += word
+        line = parts[0]
+        for word in parts[1:]:
+            if len(line) + len(word) + 1 <= MAX_LEN:
+                line += " " + word
             else:
-                self.connection.privmsg(target, line)
+                self.connection.privmsg(target, line.decode('utf-8'))
                 line = word
+
+        if len(line) > 0:
+            self.connection.privmsg(target, line.decode('utf-8'))
 
 
 def main():
