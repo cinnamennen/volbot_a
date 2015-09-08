@@ -256,7 +256,7 @@ class TestBot(irc.bot.SingleServerIRCBot):
         """Send a single line to a target, splitting by maximum line length"""
         MAX_LEN = 510 # 512 bytes - 2 for CR-LF
 
-        words = line.split(" ")
+        words = text.split(" ")
         parts = []
 
         for word in words:
