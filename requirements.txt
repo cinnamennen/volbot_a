@@ -1,0 +1,7 @@
+backports.functools_lru_cache
+irc
+markovify
+requests
+wikipedia
+
+-e git+https://github.com/novel/py-urbandict.git#egg=urbandict
