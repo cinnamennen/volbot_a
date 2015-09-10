@@ -81,6 +81,14 @@ class TestBot(irc.bot.SingleServerIRCBot):
                 if pattern.match(msg):
                     handler(e.source.nick, e.target, msg)
 
+    @Trigger(r"^.*\b[a-zA-Z]{2}[a-zA-Z]+[bcdfgklmnprstvwxz]er\b.*$")
+    def on_er(self, sender, channel, msg):
+        if random.randint(1,100) == 100:
+            er_words = re.findall(r"\b[a-zA-Z]{2}[a-zA-Z]+[bcdfgklmnprstvwxz]er\b", msg)
+            word = random.choice(er_words)
+            self.privmsg(channel, "%s? I hardly know 'er!" % word)
+
+
     @Trigger("^.*$")
     def on_table_flip(self, sender, channel, msg):
         """Trigger handler for table flipping"""
