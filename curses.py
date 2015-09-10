@@ -1,3 +1,5 @@
+"""curses.py - Fetch curses from reddit.com/r/traditionalcurses"""
+
 import cPickle
 import praw
 
@@ -7,7 +9,7 @@ try:
 except:
     curses = set()
 
-r = praw.Reddit(user_agent='Curse Scraper')
+r = praw.Reddit(user_agent='Curse Scraper for Volbot: an IRC bot for the University of Tennessee IRC Channel.')
 
 posts = r.get_subreddit('traditionalcurses').get_hot(limit=100)
 
