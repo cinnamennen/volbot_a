@@ -229,7 +229,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
         except wikipedia.exceptions.DisambiguationError as e:
             op_list = e.options
             message = "This could refer to a lot of things:\n"
-            message += "\n".join(op_list)
+            message += "\n".join(op_list[:min(5, len(op_list))])
             self.privmsg(channel, message)
         except wikipedia.exceptions.WikipediaException:
             self.privmsg(channel, "Sorry, can't find that.")
