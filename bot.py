@@ -1,14 +1,19 @@
+"""bot.py - Main module for running Volbot"""
+
+
+# Python Standard Library
 import cPickle
-import irc.bot
-import markovify
 import random
 import re
-import requests
-import wikipedia
-import urbandict # https://github.com/novel/py-urbandict
-
-
+import sys
 from string import letters, digits, punctuation
+
+# Third Party Libraries
+import irc.bot
+import markovify
+import requests
+import urbandict # https://github.com/novel/py-urbandict
+import wikipedia
 
 
 class Command:
@@ -20,6 +25,7 @@ class Command:
     def __call__(self, func):
         func.cmd_label = self.label
         return func
+
 
 class Trigger:
     """Decorator that automatically registers functions as trigger handlers"""
@@ -101,7 +107,7 @@ class TestBot(irc.bot.SingleServerIRCBot):
         if u'\u253B' in msg:
             self.privmsg(channel, u"\u252C\u2500\u252C\u30CE(\xBA_\xBA\u30CE)")
 
-    
+
     @Trigger(r"^.*https?://[^\s]+.*$")
     def on_link(self, sender, channel, msg):
         """Trigger handler for website links"""
@@ -202,7 +208,7 @@ class TestBot(irc.bot.SingleServerIRCBot):
         else:
             insult = random.choice(compliments).replace('<nick>', victim)
             self.privmsg(channel, insult)
-            
+
     @Command("tellmeabout")
     def cmd_tellmeabout(self, sender, channel, cmd, args):
         """tellmeabout [thing]\nGet basic info on <thing>."""
@@ -285,7 +291,7 @@ class TestBot(irc.bot.SingleServerIRCBot):
         """Send a message to a target, split by newlines automatically"""
         lines = msg.split('\n')
         for line in lines:
-            
+
             self.send_split(target, line)
 
     def send_split(self, target, text):
@@ -302,7 +308,7 @@ class TestBot(irc.bot.SingleServerIRCBot):
                 parts.append(word[i:i+MAX_LEN])
 
         if len(parts) == 0:
-            return 
+            return
 
         line = parts[0]
         for word in parts[1:]:
@@ -319,7 +325,6 @@ class TestBot(irc.bot.SingleServerIRCBot):
 def main():
 
     # get command line args
-    import sys
     if len(sys.argv) != 4:
         print("Usage: testbot <server[:port]> <channel> <nickname>")
         sys.exit(1)
@@ -340,6 +345,7 @@ def main():
     # run the bot
     bot = TestBot(channel, nickname, server, port)
     bot.start()
+
 
 if __name__ == "__main__":
     main()
