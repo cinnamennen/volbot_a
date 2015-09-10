@@ -88,10 +88,12 @@ class TestBot(irc.bot.SingleServerIRCBot):
             word = random.choice(er_words)
             self.privmsg(channel, "%s? I hardly know 'er!" % word)
 
-    @Trigger("ay+")
+    @Trigger(r".*\bay+\b")
     def on_ayy(self, sender, channel, msg):
         """Trigger handler for ayy, lmao"""
-        self.privmsg(channel, "lmao")
+        ayy = re.findall(r".*\bay+\b", msg)
+        message = 'lma' + (ayy[0].count('y') - 1) * 'o'
+        self.privmsg(channel, message)
 
     @Trigger("^.*$")
     def on_table_flip(self, sender, channel, msg):
