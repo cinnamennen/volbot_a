@@ -6,6 +6,7 @@ import cPickle
 import random
 import re
 import sys
+import traceback
 from string import letters, digits, punctuation
 
 # Third Party Libraries
@@ -15,15 +16,21 @@ import requests
 import urbandict # https://github.com/novel/py-urbandict
 import wikipedia
 
+OP_ONLY = 100
+VOICE_ONLY = 50
+EVERYONE = 0
+
 
 class Command:
     """Decorator that automatically registers functions as command handlers"""
 
-    def __init__(self, label):
+    def __init__(self, label, perms=OP_ONLY):
         self.label = label
+        self.permissions = perms
 
     def __call__(self, func):
         func.cmd_label = self.label
+        func.cmd_perms = self.permissions
         return func
 
 
@@ -47,6 +54,8 @@ class VolBot(irc.bot.SingleServerIRCBot):
         # initialize shakespearean generator
         with open('shake2.txt') as f:
             self.shakespeare = markovify.Text(f.read())
+
+        self.ignored = set()
 
         # setup commands and triggers
         self.commands = {}
@@ -76,16 +85,21 @@ class VolBot(irc.bot.SingleServerIRCBot):
         """Handle a message in a channel"""
         msg = e.arguments[0]
 
+        channel = e.target
+
+        if e.source.nick in self.ignored:
+            return
+
         # if message is a command addressed to us, handle it
         if msg.lower().startswith('!' + conn.get_nickname().lower()):
             parts = msg.split(' ')
             if len(parts) > 1:
-                self.do_command(e, e.target, parts[1], parts[2:])
+                self.do_command(e, channel, parts[1], parts[2:])
         else:
             # otherwise, check if the message matches any trigger patterns
             for pattern, handler in self.triggers:
                 if pattern.match(msg):
-                    handler(e.source.nick, e.target, msg)
+                    handler(e.source.nick, channel, msg)
 
     @Trigger(r"^.*\b[a-zA-Z]{2}[a-zA-Z]+[bcdfgklmnprstvwxz]er\b.*$")
     def on_er(self, sender, channel, msg):
@@ -126,7 +140,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
                 pass
 
 
-    @Command("curse")
+    @Command("curse", EVERYONE)
     def cmd_curse(self, sender, channel, cmd, args):
         """curse <nick>\nPut a curse on <nick>."""
         # default to sender if they didn't specify a target
@@ -143,7 +157,28 @@ class VolBot(irc.bot.SingleServerIRCBot):
         self.privmsg(channel, "%s: %s" % (victim, random.choice(curses)))
 
 
-    @Command("help")
+    @Command("quit", OP_ONLY)
+    def cmd_quit(self, sender, channel, cmd, args):
+        """quit\nQuit."""
+        self.privmsg(channel, "bye")
+        sys.exit(1)
+
+
+    @Command("ignore", OP_ONLY)
+    def cmd_ignore(self, sender, channel, cmd, args):
+        """ignore <nick>\nIgnore <nick>."""
+        if len(args) > 0:
+            self.ignored.add(args[0])
+
+
+    @Command("unignore", OP_ONLY)
+    def cmd_unignore(self, sender, channel, cmd, args):
+        """unignore <nick>\nStop ignoring <nick>."""
+        if len(args) > 0:
+            self.ignored.remove(args[0])
+
+
+    @Command("help", EVERYONE)
     def cmd_help(self, sender, channel, cmd, args):
         """You're already using it!"""
 
@@ -161,19 +196,13 @@ class VolBot(irc.bot.SingleServerIRCBot):
             self.privmsg(channel, docs)
 
 
-    @Command("hw")
-    def cmd_hw(self, sender, channel, cmd, args):
-        """hw\nA programming classic."""
-        self.privmsg(channel, "hello world")
-
-
-    @Command("shakespeare")
+    @Command("shakespeare", EVERYONE)
     def cmd_shakespeare(self, sender, channel, cmd, args):
         """shakespeare\nGenerate some classic literature.."""
         self.privmsg(channel, self.shakespeare.make_short_sentence(500))
 
 
-    @Command("insult")
+    @Command("insult", EVERYONE)
     def cmd_insult(self, sender, channel, cmd, args):
         """insult <nick>\nSay mean things to the user."""
 
@@ -209,7 +238,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
             insult = random.choice(compliments).replace('<nick>', victim)
             self.privmsg(channel, insult)
 
-    @Command("tellmeabout")
+    @Command("tellmeabout", EVERYONE)
     def cmd_tellmeabout(self, sender, channel, cmd, args):
         """tellmeabout [thing]\nGet basic info on <thing>."""
 
@@ -242,13 +271,29 @@ class VolBot(irc.bot.SingleServerIRCBot):
         if cmd.lower() in self.commands:
             # if so, look up and call the command handler
             handler = self.commands[cmd.lower()]
-            handler(nick, target, cmd, args)
+            chan = self.channels[target]
+
+            user_level = 0
+            if chan.is_oper(nick):
+                user_level = 100
+            elif chan.is_voiced(nick):
+                user_level = 50
+
+            if user_level >= handler.cmd_perms:
+                try:
+                    handler(nick, target, cmd, args)
+                except:
+                    self.privmsg(target, "Oops. Internal error. Check my logs.")
+                    traceback.print_exc()
+
+            else:
+                self.privmsg(target, "no way")
         else:
             # otherwise print an error message
             self.privmsg(target, "what?")
 
 
-    @Command("ud")
+    @Command("ud", EVERYONE)
     def cmd_ud(self, sender, channel, cmd, args):
         """ud [word]\nLook up a word on Urban Dictionary."""
 
@@ -265,6 +310,8 @@ class VolBot(irc.bot.SingleServerIRCBot):
             self.privmsg(channel, resp)
         except:
             self.privmsg(channel, "Sorry, can't find that.")
+
+
 
 
     def register_stuff(self):
