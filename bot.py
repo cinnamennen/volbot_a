@@ -225,6 +225,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
         try:
             #3 sentence limit. Can be extended later
             summary = wikipedia.summary(query, 3)
+            summary = summary.replace('\n', ' ')
             self.privmsg(channel, summary)
         except wikipedia.exceptions.DisambiguationError as e:
             op_list = e.options
