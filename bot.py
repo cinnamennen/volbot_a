@@ -38,7 +38,7 @@ class Trigger:
         return func
 
 
-class TestBot(irc.bot.SingleServerIRCBot):
+class VolBot(irc.bot.SingleServerIRCBot):
     def __init__(self, channel, nickname, server, port=6667):
         irc.bot.SingleServerIRCBot.__init__(self, [(server, port)], nickname, nickname)
 
@@ -341,7 +341,7 @@ def main():
     nickname = sys.argv[3]
 
     # run the bot
-    bot = TestBot(channel, nickname, server, port)
+    bot = VolBot(channel, nickname, server, port)
     bot.start()
 
 
