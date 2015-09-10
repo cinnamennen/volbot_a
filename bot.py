@@ -81,6 +81,11 @@ class TestBot(irc.bot.SingleServerIRCBot):
                 if pattern.match(msg):
                     handler(e.source.nick, e.target, msg)
 
+    @Trigger("ay+")
+    def on_ayy(self, sender, channel, msg):
+        """Trigger handler for ayy, lmao"""
+        self.privmsg(channel, "lmao")
+
     @Trigger("^.*$")
     def on_table_flip(self, sender, channel, msg):
         """Trigger handler for table flipping"""
