@@ -191,7 +191,9 @@ class VolBot(irc.bot.SingleServerIRCBot):
 
         # if no args, just list commands
         if len(args) == 0:
-            cmdlist = "commands: %s" % ', '.join(self.commands.keys())
+            cmds = self.commands.keys()
+            cmds.sort()
+            cmdlist = "commands: %s" % ', '.join(cmds)
             self.privmsg(channel, "Use help <command> to learn about a specific command.")
             self.privmsg(channel, cmdlist)
             return
