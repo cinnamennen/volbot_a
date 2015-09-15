@@ -239,7 +239,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
             "<3 <nick>",
         ]
 
-        if victim.lower() not in ['volbot', 'joecon']:
+        if victim.lower() not in [self._nickname, 'joecon']:
             # can't say anything mean about the creator :P
             insult = random.choice(insults).replace('<nick>', victim)
             self.privmsg(channel, insult)
