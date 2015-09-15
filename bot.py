@@ -262,7 +262,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
         """shakespeare\nGenerate some classic literature.."""
         self.privmsg(channel, self.shakespeare.make_short_sentence(500))
 
-    @Command("volify", EVERYONE)
+    #@Command("volify", EVERYONE)
     def cmd_volify(self, sender, channel, cmd, args):
         """volify\nSee what we really sound like."""
         volify = ''
