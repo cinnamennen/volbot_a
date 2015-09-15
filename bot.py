@@ -6,6 +6,7 @@ import cPickle
 import random
 import re
 import sys
+import time
 import traceback
 from string import letters, digits, punctuation
 
@@ -48,15 +49,18 @@ class Trigger:
 
 class VolBot(irc.bot.SingleServerIRCBot):
     def __init__(self, channel, nickname, server, port=6667):
+        self.log("Connecting to %s:%s as %s" % (server,port,nickname))
         irc.bot.SingleServerIRCBot.__init__(self, [(server, port)], nickname, nickname)
 
         self.channel = channel
 
         # initialize shakespearean generator
+        self.log("Loading shakespearean texts")
         with open('shake2.txt') as f:
             self.shakespeare = markovify.Text(f.read())
 
         # set up db
+        self.log("Connecting to MongoDB")
         client = pymongo.MongoClient("localhost", 27017)
         self.db = client.irc
 
@@ -75,6 +79,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
 
     def on_welcome(self, conn, e):
         """Handle successful connection to IRC server"""
+        self.log("Connected to IRC server.")
         conn.join(self.channel)
 
 
@@ -88,7 +93,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
 
     def on_pubmsg(self, conn, e):
         """Handle a message in a channel"""
-        log_msg(conn, e)
+        self.log_msg(conn, e)
 
         msg = e.arguments[0]
 
@@ -113,7 +118,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
             traceback.print_exc()
 
     def log(self, msg):
-        timestamp = time.strftime('%m-%d-%y %H:%M%S')
+        timestamp = time.strftime('%m-%d-%y %H:%M:%S')
         print '[%s] %s' % (timestamp, msg)
         
     def log_msg(self, conn, e):
@@ -388,15 +393,19 @@ class VolBot(irc.bot.SingleServerIRCBot):
         for attr in dir(self):
             obj = getattr(self, attr)
 
+            # filter crap that claims to have any attr... (looking at you, pymongo)
+            if hasattr(obj, "asdfhaosiuehcaiouhseoiufh"):
+                continue
+
             # check if each property is a command or trigger handler
             # if so, store it in the appropriate place
             if hasattr(obj, "cmd_label"):
                 label = getattr(obj, "cmd_label")
-                self.log('registered command %s to %s' % (label, obj.__name__))
+                self.log('registered command %s to %s()' % (label, obj.__name__))
                 self.commands[label.lower()] = obj
             elif hasattr(obj, "trigger_pattern"):
                 pattern = getattr(obj, "trigger_pattern")
-                self.log('registered trigger %s to ' % (pattern, obj.__name__))
+                self.log('registered trigger %s to %s()' % (pattern, obj.__name__))
                 self.triggers.append((re.compile(pattern), obj))
 
 
