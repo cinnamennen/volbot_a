@@ -168,7 +168,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
     def cmd_quit(self, sender, channel, cmd, args):
         """quit\nQuit."""
         self.privmsg(channel, "bye")
-        sys.exit(1)
+        self.die()
 
 
     @Command("ignore", OP_ONLY)
