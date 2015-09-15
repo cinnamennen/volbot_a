@@ -19,10 +19,12 @@ for post in posts:
         print curse
         curses.add(curse)
 
+badwords = ['reddit', 'traditionalcurses']
 bads = []
 for c in curses:
-    if 'reddit' in c.lower():
-        bads.append(c)
+    for b in badwords:
+        if b.lower() in c.lower():
+            bads.append(c)
 [curses.remove(b) for b in bads]
 
 with open('curses.txt', 'w') as f:
