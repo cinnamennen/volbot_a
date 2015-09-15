@@ -104,7 +104,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
     @Trigger(r"^.*\b[iI][rR][cC]\b.*$")
     def on_talks_about_irc(self, sender, channel, msg):
         """Trigger handler for when someone says IRC (based on inside joke)"""
-        if random.randin(1,100) == 100:
+        if random.randint(1,100) == 100:
             message = "\"" + msg + "\" -- " + sender
             self.privmsg(channel, message)
 
