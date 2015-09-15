@@ -19,7 +19,7 @@ for post in posts:
         print curse
         curses.add(curse)
 
-badwords = ['reddit', 'traditionalcurses']
+badwords = ['reddit', 'traditionalcurses', 'upvote', 'downvote']
 bads = []
 for c in curses:
     for b in badwords:
