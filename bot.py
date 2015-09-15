@@ -101,7 +101,8 @@ class VolBot(irc.bot.SingleServerIRCBot):
                 if pattern.match(msg):
                     handler(e.source.nick, channel, msg)
 
-    @Trigger(r"^[0-9\+\-/\*\(\)\s\.%]+$")
+    # disabled because people abuse too much
+    # @Trigger(r"^[0-9\+\-/\*\(\)\s\.%]+$")
     def on_calc(self, sender, channel, msg):
         """Trigger handler for calculations"""
         # require at least one number
