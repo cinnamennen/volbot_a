@@ -136,7 +136,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
         if u'\u253B' in msg:
             self.privmsg(channel, u"\u252C\u2500\u252C\u30CE(\xBA_\xBA\u30CE)")
 
-    @Trigger(r"what are tho+\bse")
+    @Trigger(r"what are tho+se")
     def on_those(self, sender, channel, msg):
         """Trigger for what are those"""
         self.privmsg(channel, "WHAT ARE THOOOOOOOOOOSE")
