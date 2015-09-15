@@ -101,6 +101,14 @@ class VolBot(irc.bot.SingleServerIRCBot):
                 if pattern.match(msg):
                     handler(e.source.nick, channel, msg)
 
+    @Trigger(r"^[0-9\+\-/\*\(\)\s\.%]+$")
+    def on_calc(self, sender, channel, msg):
+        """Trigger handler for calculations"""
+        try:
+            result = self.privmsg(channel, str(eval(msg)))
+        except:
+            self.privmsg(channel, "no.")
+
     @Trigger(r"^.*\b[iI][rR][cC]\b.*$")
     def on_talks_about_irc(self, sender, channel, msg):
         """Trigger handler for when someone says IRC (based on inside joke)"""
