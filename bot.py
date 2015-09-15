@@ -12,6 +12,7 @@ from string import letters, digits, punctuation
 # Third Party Libraries
 import irc.bot
 import markovify
+import pymongo
 import requests
 import urbandict # https://github.com/novel/py-urbandict
 import wikipedia
@@ -55,6 +56,10 @@ class VolBot(irc.bot.SingleServerIRCBot):
         with open('shake2.txt') as f:
             self.shakespeare = markovify.Text(f.read())
 
+        # set up db
+        client = pymongo.MongoClient("localhost", 27017)
+        self.db = client.irc
+
         self.ignored = set(['volbot', 'stuessbot'])
 
         # setup commands and triggers
@@ -83,6 +88,8 @@ class VolBot(irc.bot.SingleServerIRCBot):
 
     def on_pubmsg(self, conn, e):
         """Handle a message in a channel"""
+        log_msg(conn, e)
+
         msg = e.arguments[0]
 
         channel = e.target
@@ -97,33 +104,35 @@ class VolBot(irc.bot.SingleServerIRCBot):
                 if len(parts) > 1:
                     self.do_command(e, channel, parts[1], parts[2:])
             else:
-                # otherwise, check if the message matches any trigger patterns
-                # also, add it to the chat log for volify
-                flines = []
-                with open('chatlog.txt', 'r') as f:
-                    flines = f.read().splitlines()
-
-                while len(flines) > 100000: # arbitrary 100,000 line storage limit
-                    del flines[0]
-
-                with open('chatlog.txt', 'w') as f:
-                    flines.append(msg)
-                    try:
-                        f.write('\n'.join(flines))
-                    except UnicodeEncodeError:
-                        del flines[-1]
-                        f.write('\n'.join(flines))
-                
-
                 for pattern, handler in self.triggers:
                     if pattern.match(msg):
                         handler(e.source.nick, channel, msg)
         except UnicodeEncodeError:
-            print "UnicodeEncodeError"
+            traceback.print_exc()
         except UnicodeDecodeError:
-            print "UnicodeDecodeError"
+            traceback.print_exc()
 
+    def log(self, msg):
+        timestamp = time.strftime('%m-%d-%y %H:%M%S')
+        print '[%s] %s' % (timestamp, msg)
+        
+    def log_msg(self, conn, e):
+        chan = e.target
+        nick = e.source.nick
+        msg = e.arguments[0]
+
+        self.log('<%s> %s: %s' % (chan, nick, msg))
+
+        self.db.messages.insert_one({
+            "time": time.time(),
+            "channel": chan,
+            "nick": nick,
+            "message": msg,
+        })
+
+        
     # disabled because people abuse too much
+    # may re-enable if we can find a way to make it safe
     # @Trigger(r"^[0-9\+\-/\*\(\)\s\.%]+$")
     def on_calc(self, sender, channel, msg):
         """Trigger handler for calculations"""
@@ -383,11 +392,11 @@ class VolBot(irc.bot.SingleServerIRCBot):
             # if so, store it in the appropriate place
             if hasattr(obj, "cmd_label"):
                 label = getattr(obj, "cmd_label")
-                print 'registered %s' % label
+                self.log('registered command %s to %s' % (label, obj.__name__))
                 self.commands[label.lower()] = obj
             elif hasattr(obj, "trigger_pattern"):
                 pattern = getattr(obj, "trigger_pattern")
-                print 'registered %s' % pattern
+                self.log('registered trigger %s to ' % (pattern, obj.__name__))
                 self.triggers.append((re.compile(pattern), obj))
 
 
@@ -395,7 +404,6 @@ class VolBot(irc.bot.SingleServerIRCBot):
         """Send a message to a target, split by newlines automatically"""
         lines = msg.split('\n')
         for line in lines:
-
             self.send_split(target, line)
 
     def send_split(self, target, text):
