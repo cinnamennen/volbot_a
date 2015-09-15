@@ -150,7 +150,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
                 title = re.search(r"<title>(.*)</title>", resp).groups()[0]
                 okchars = letters + digits + punctuation + ' '
                 title = ''.join(c for c in title if c in okchars).strip()
-                self.privmsg(channel, '%s: %s' % (link, title))
+                self.privmsg(channel, '%s' % (title))
             except:
                 pass
 
