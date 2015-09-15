@@ -55,7 +55,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
         with open('shake2.txt') as f:
             self.shakespeare = markovify.Text(f.read())
 
-        self.ignored = set()
+        self.ignored = set(['volbot', 'stuessbot'])
 
         # setup commands and triggers
         self.commands = {}
