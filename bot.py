@@ -87,19 +87,22 @@ class VolBot(irc.bot.SingleServerIRCBot):
         """Handle a private message"""
         # Just run PMs as commands
         msg = e.arguments[0]
+        nick = e.source.nick
         parts = msg.split(' ')
-        self.do_command(e, e.source.nick, parts[0], parts[1:])
+
+        self.log_msg(nick, nick, msg)
+        self.do_command(e, nick, parts[0], parts[1:])
 
 
     def on_pubmsg(self, conn, e):
         """Handle a message in a channel"""
-        self.log_msg(conn, e)
-
+        nick = e.source.nick
         msg = e.arguments[0]
-
         channel = e.target
 
-        if e.source.nick in self.ignored:
+        self.log_msg(channel, nick, msg)
+
+        if nick in self.ignored:
             return
 
         try:
@@ -111,7 +114,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
             else:
                 for pattern, handler in self.triggers:
                     if pattern.match(msg):
-                        handler(e.source.nick, channel, msg)
+                        handler(nick, channel, msg)
         except UnicodeEncodeError:
             traceback.print_exc()
         except UnicodeDecodeError:
@@ -121,10 +124,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
         timestamp = time.strftime('%m-%d-%y %H:%M:%S')
         print '[%s] %s' % (timestamp, msg)
         
-    def log_msg(self, conn, e):
-        chan = e.target
-        nick = e.source.nick
-        msg = e.arguments[0]
+    def log_msg(self, chan, nick, msg):
 
         self.log('<%s> %s: %s' % (chan, nick, msg))
 
@@ -436,10 +436,12 @@ class VolBot(irc.bot.SingleServerIRCBot):
             if len(line) + len(word) + 1 <= MAX_LEN:
                 line += " " + word
             else:
+                self.log_msg(target, self._nickname, line.decode('utf-8'))
                 self.connection.privmsg(target, line.decode('utf-8'))
                 line = word
 
         if len(line) > 0:
+            self.log_msg(target, self._nickname, line.decode('utf-8'))
             self.connection.privmsg(target, line.decode('utf-8'))
 
 
