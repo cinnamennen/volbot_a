@@ -90,16 +90,38 @@ class VolBot(irc.bot.SingleServerIRCBot):
         if e.source.nick in self.ignored:
             return
 
-        # if message is a command addressed to us, handle it
-        if msg.lower().startswith('!' + conn.get_nickname().lower()):
-            parts = msg.split(' ')
-            if len(parts) > 1:
-                self.do_command(e, channel, parts[1], parts[2:])
-        else:
-            # otherwise, check if the message matches any trigger patterns
-            for pattern, handler in self.triggers:
-                if pattern.match(msg):
-                    handler(e.source.nick, channel, msg)
+        try:
+            # if message is a command addressed to us, handle it
+            if msg.lower().startswith('!' + conn.get_nickname().lower()):
+                parts = msg.split(' ')
+                if len(parts) > 1:
+                    self.do_command(e, channel, parts[1], parts[2:])
+            else:
+                # otherwise, check if the message matches any trigger patterns
+                # also, add it to the chat log for volify
+                flines = []
+                with open('chatlog.txt', 'r') as f:
+                    flines = f.read().splitlines()
+
+                while len(flines) > 100000: # arbitrary 100,000 line storage limit
+                    del flines[0]
+
+                with open('chatlog.txt', 'w') as f:
+                    flines.append(msg)
+                    try:
+                        f.write('\n'.join(flines))
+                    except UnicodeEncodeError:
+                        del flines[-1]
+                        f.write('\n'.join(flines))
+                
+
+                for pattern, handler in self.triggers:
+                    if pattern.match(msg):
+                        handler(e.source.nick, channel, msg)
+        except UnicodeEncodeError:
+            print "UnicodeEncodeError"
+        except UnicodeDecodeError:
+            print "UnicodeDecodeError"
 
     @Trigger(r"^[0-9\+\-/\*\(\)\s\.%]+$")
     def on_calc(self, sender, channel, msg):
@@ -217,6 +239,15 @@ class VolBot(irc.bot.SingleServerIRCBot):
     def cmd_shakespeare(self, sender, channel, cmd, args):
         """shakespeare\nGenerate some classic literature.."""
         self.privmsg(channel, self.shakespeare.make_short_sentence(500))
+
+    @Command("volify", EVERYONE)
+    def cmd_volify(self, sender, channel, cmd, args):
+        """volify\nSee what we really sound like."""
+        volify = ''
+        with open('chatlog.txt') as f:
+            volify = markovify.Text(f.read())
+        self.privmsg(channel, volify.make_short_sentence(500))
+            
 
 
     @Command("insult", EVERYONE)
