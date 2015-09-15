@@ -55,7 +55,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
         with open('shake2.txt') as f:
             self.shakespeare = markovify.Text(f.read())
 
-        self.ignored = set()
+        self.ignored = set(['volbot', 'stuessbot'])
 
         # setup commands and triggers
         self.commands = {}
@@ -123,9 +123,13 @@ class VolBot(irc.bot.SingleServerIRCBot):
         except UnicodeDecodeError:
             print "UnicodeDecodeError"
 
-    @Trigger(r"^[0-9\+\-/\*\(\)\s\.%]+$")
+    # disabled because people abuse too much
+    # @Trigger(r"^[0-9\+\-/\*\(\)\s\.%]+$")
     def on_calc(self, sender, channel, msg):
         """Trigger handler for calculations"""
+        # require at least one number
+        if re.match('^.*[0-9].*$', msg) is None:
+            return
         try:
             result = self.privmsg(channel, str(eval(msg)))
         except:
@@ -158,6 +162,10 @@ class VolBot(irc.bot.SingleServerIRCBot):
         if u'\u253B' in msg:
             self.privmsg(channel, u"\u252C\u2500\u252C\u30CE(\xBA_\xBA\u30CE)")
 
+    @Trigger(r"what are tho+se")
+    def on_those(self, sender, channel, msg):
+        """Trigger for what are those"""
+        self.privmsg(channel, "WHAT ARE THOOOOOOOOOOSE")
 
     @Trigger(r"^.*https?://[^\s]+.*$")
     def on_link(self, sender, channel, msg):
@@ -172,7 +180,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
                 title = re.search(r"<title>(.*)</title>", resp).groups()[0]
                 okchars = letters + digits + punctuation + ' '
                 title = ''.join(c for c in title if c in okchars).strip()
-                self.privmsg(channel, '%s: %s' % (link, title))
+                self.privmsg(channel, '%s' % (title))
             except:
                 pass
 
@@ -320,7 +328,8 @@ class VolBot(irc.bot.SingleServerIRCBot):
         if cmd.lower() in self.commands:
             # if so, look up and call the command handler
             handler = self.commands[cmd.lower()]
-            chan = self.channels[target]
+            
+            chan = self.channels[self.channel]
 
             user_level = 0
             if chan.is_oper(nick):
