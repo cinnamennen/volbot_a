@@ -289,7 +289,8 @@ class VolBot(irc.bot.SingleServerIRCBot):
         if cmd.lower() in self.commands:
             # if so, look up and call the command handler
             handler = self.commands[cmd.lower()]
-            chan = self.channels[target]
+            
+            chan = self.channels[self.channel]
 
             user_level = 0
             if chan.is_oper(nick):
