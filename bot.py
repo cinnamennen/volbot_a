@@ -262,6 +262,18 @@ class VolBot(irc.bot.SingleServerIRCBot):
         """shakespeare\nGenerate some classic literature.."""
         self.privmsg(channel, self.shakespeare.make_short_sentence(500))
 
+    @Command("stats", EVERYONE)
+    def cmd_stats(self, sender, channel, cmd, args):
+        """stats [nick]\nPrint statistics for a nickname"""
+        if len(args) > 0:
+            nick = args[0]
+        else:
+            nick = sender
+
+        messages = self.db.messages.find({"nick": nick})
+        self.privmsg(channel, "Found %d messages for %s..." % (messages.count(), nick))
+
+
     #@Command("volify", EVERYONE)
     def cmd_volify(self, sender, channel, cmd, args):
         """volify\nSee what we really sound like."""
@@ -269,8 +281,6 @@ class VolBot(irc.bot.SingleServerIRCBot):
         with open('chatlog.txt') as f:
             volify = markovify.Text(f.read())
         self.privmsg(channel, volify.make_short_sentence(500))
-            
-
 
     @Command("insult", EVERYONE)
     def cmd_insult(self, sender, channel, cmd, args):
