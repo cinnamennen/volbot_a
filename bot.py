@@ -2,6 +2,7 @@
 
 
 # Python Standard Library
+import collections
 import cPickle
 import random
 import re
@@ -286,8 +287,26 @@ class VolBot(irc.bot.SingleServerIRCBot):
         else:
             nick = sender
 
-        messages = self.db.messages.find({"nick": nick})
-        self.privmsg(channel, "Found %d messages for %s..." % (messages.count(), nick))
+        nick_messages = self.db.messages.find({"nick": nick})
+        all_messages = self.db.messages.find()
+        nick_count = nick_messages.count()
+        all_count = all_messages.count()
+        percent = 100.0 * float(nick_count) / all_count
+
+        def clean(word):
+            return word.strip('.,?!/;:\'"').lower()
+
+        counter = collections.Counter()
+        for doc in nick_messages:
+            counter.update([clean(word) for word in doc['message'].split()])
+        # total number of words from user.
+        wc = sum(counter.itervalues())
+
+        self.privmsg(channel, "%s sent %d messages of %d logged messages (%.2f%%)" % 
+            (nick, nick_count, all_count, percent))
+        self.privmsg(channel, "Used %d unique words. Favorites: %s" % (wc, ', '.join(
+            "%s (%.2f%%)" % (w,(float(c)/wc)) for w,c in counter.most_common(10)
+        )))
 
 
     @Command("volify", EVERYONE)
