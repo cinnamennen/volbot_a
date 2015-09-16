@@ -71,7 +71,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
         messages = self.db.messages.find(
             {"nick": {"$ne": self._nickname}},
             limit=10000, 
-            sort=[("time", pymongo.ASCENDING)]
+            sort=[("time", pymongo.DESCENDING)]
         )
         self.volify = markovify.Text('. '.join(doc['message'] for doc in messages)) # the idea is that it grabs the most recent 10,000 messages
 
@@ -439,6 +439,53 @@ class VolBot(irc.bot.SingleServerIRCBot):
             self.privmsg(channel, resp)
         except:
             self.privmsg(channel, "Sorry, can't find that.")
+
+    @Command("last", EVERYONE)
+    def cmd_last(self, sender, channel, cmd, args):
+        """last [name] [num of messages]\nShow the last [num of messages] sent by [name]"""
+        
+        # make the default to be sender and 1
+        if len(args) > 1:
+            target = args[0]
+            num = int(args[1])
+        elif len(args) == 1:
+            if re.search(r'\b\d+\b', args[0]):
+                target = sender
+                num = int(args[0])
+            else:
+                target = args[0]
+                num = 1
+        else:
+            target = sender
+            num = 1
+
+        #impose a max number of messages
+        if num > 10:
+            num = 10
+        elif num < 0:
+            num = 1
+
+        # handle the command being sent and not sending that message back
+        if target == sender:
+            num += 1
+
+        # get messages
+        message_list = []
+        messages = self.db.messages.find({"nick": target}, limit=num, sort=[("time", pymongo.DESCENDING)])
+        for doc in messages:
+            message_list.append(doc['message'])
+
+        if target == sender:
+            del message_list[0]
+        
+        #prepend user
+        for i in range(0, len(message_list)):
+            message_list[i] = target + ": " + message_list[i]
+
+        self.privmsg(channel, "\n".join(message_list))
+
+        
+
 
 
     def register_stuff(self):
