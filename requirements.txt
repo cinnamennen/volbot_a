@@ -1,6 +1,7 @@
 backports.functools_lru_cache
 irc
 markovify
+pymongo
 requests
 wikipedia
 
