@@ -139,7 +139,6 @@ class VolBot(irc.bot.SingleServerIRCBot):
             "message": msg,
         })
 
-        
     # disabled because people abuse too much
     # may re-enable if we can find a way to make it safe
     # @Trigger(r"^[0-9\+\-/\*\(\)\s\.%]+$")
@@ -282,6 +281,12 @@ class VolBot(irc.bot.SingleServerIRCBot):
     def cmd_volify(self, sender, channel, cmd, args):
         """volify\nSee what we really sound like."""
         self.privmsg(channel, self.volify.make_short_sentence(500))
+
+    @Command("rlvolify", OP_ONLY)
+    def cmd_rlvolify(self, sender, channel, cmd, args):
+        """rlvolify\nReload the chat logs for the volify command"""
+        self.volify = markovify.Text('. '.join(doc['message'] for doc in self.db.messages.find(limit=10000, sort=[("time", pymongo.ASCENDING)]))) 
+        self.privmsg(channel, "Reloaded.")
 
     @Command("insult", EVERYONE)
     def cmd_insult(self, sender, channel, cmd, args):
