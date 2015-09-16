@@ -66,7 +66,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
 
         # initialize volify markov thing
         self.log("Loading chat history for volify")
-        self.volify = markovify.Text('. '.join(self.db.messages.find(limit=10000, sort=[("time", pymongo.ASCENDING)]))) # the idea is that it grabs the most recent 10,000 messages
+        self.volify = markovify.Text('. '.join(doc['message'] for doc in self.db.messages.find(limit=10000, sort=[("time", pymongo.ASCENDING)]))) # the idea is that it grabs the most recent 10,000 messages
 
         self.ignored = set(['volbot', 'stuessbot'])
 
@@ -278,7 +278,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
         self.privmsg(channel, "Found %d messages for %s..." % (messages.count(), nick))
 
 
-    #@Command("volify", EVERYONE)
+    @Command("volify", EVERYONE)
     def cmd_volify(self, sender, channel, cmd, args):
         """volify\nSee what we really sound like."""
         self.privmsg(channel, self.volify.make_short_sentence(500))
