@@ -64,6 +64,10 @@ class VolBot(irc.bot.SingleServerIRCBot):
         client = pymongo.MongoClient("localhost", 27017)
         self.db = client.irc
 
+        # initialize volify markov thing
+        self.log("Loading chat history for volify")
+        self.volify = markovify.Text('. '.join(self.db.messages.find(limit=10000, sort=[("time", pymongo.ASCENDING)]))) # the idea is that it grabs the most recent 10,000 messages
+
         self.ignored = set(['volbot', 'stuessbot'])
 
         # setup commands and triggers
@@ -277,10 +281,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
     #@Command("volify", EVERYONE)
     def cmd_volify(self, sender, channel, cmd, args):
         """volify\nSee what we really sound like."""
-        volify = ''
-        with open('chatlog.txt') as f:
-            volify = markovify.Text(f.read())
-        self.privmsg(channel, volify.make_short_sentence(500))
+        self.privmsg(channel, self.volify.make_short_sentence(500))
 
     @Command("insult", EVERYONE)
     def cmd_insult(self, sender, channel, cmd, args):
