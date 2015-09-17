@@ -1,1 +1,2 @@
 recursive-include volbot/extra *
+include requirements.txt

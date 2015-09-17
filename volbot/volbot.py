@@ -17,10 +17,10 @@ import irc.bot
 import markovify
 import pymongo
 import requests
-import urbandict # https://github.com/novel/py-urbandict
 import wikipedia
 
 # Project specific imports
+from .urbandict import urbandict
 from .settings import *
 
 

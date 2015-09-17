@@ -1,6 +1,6 @@
 """setup.py - Setup file for volbot"""
 
-
+import os
 from setuptools import setup, find_packages
 
 
@@ -13,6 +13,14 @@ setup(
         'volbot.volbot.extra': ['*'],
     },
     include_package_data = True,
+    install_requires = [
+        'irc',
+        'markovify',
+        'pymongo',
+        'requests',
+        'wikipedia',
+        'praw',
+    ],
     entry_points = {
         'console_scripts': ['volbot=volbot.volbot:main', 'volbot-curses=volbot.scripts.curses:main'],
     }
