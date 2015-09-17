@@ -118,7 +118,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
 
         try:
             # if message is a command addressed to us, handle it
-            if msg.lower().startswith('!' + conn.get_nickname().lower()):
+            if re.match("^!%s\s" % self._nickname, msg):
                 parts = msg.split(' ')
                 if len(parts) > 1:
                     self.do_command(e, channel, parts[1], parts[2:])
