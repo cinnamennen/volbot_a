@@ -482,12 +482,12 @@ class VolBot(irc.bot.SingleServerIRCBot):
             if target == sender:
                 messages.skip(1)
         else:
-            messages = self.db.messages.find(dict(), limit=num, sort=[("time", pymongo.DESCENDING)])
+            messages = self.db.messages.find(dict(), limit=num, sort=[("time", pymongo.DESCENDING)]).skip(1)
 
-        messages_list = [doc['nick'] + ': ' + doc['message'] for doc in messages]
-        message_list.reverse()
-
-        self.privmsg(channel, "\n".join(message_list))
+        lines = [doc['nick'] + ': ' + doc['message'] for doc in messages]
+        # to play back in chronological order
+        lines.reverse()
+        self.privmsg(channel, "\n".join(lines))
 
     def register_stuff(self):
         """Automatically find and store command/trigger handlers"""
