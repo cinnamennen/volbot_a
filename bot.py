@@ -88,6 +88,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
             sort=[("time", pymongo.DESCENDING)]
         ) # the idea is that it grabs the most recent 10,000 messages
         self.volify = markovify.Text('. '.join(doc['message'] for doc in messages))
+        return messages.count()
 
 
     def on_nicknameinuse(self, conn, e):
@@ -341,8 +342,8 @@ class VolBot(irc.bot.SingleServerIRCBot):
     @Command("rlvolify", OP_ONLY)
     def cmd_rlvolify(self, sender, channel, cmd, args):
         """rlvolify\nReload the chat logs for the volify command"""
-        self.load_volify()
-        self.privmsg(channel, "Reloaded.")
+        n = self.load_volify()
+        self.privmsg(channel, "Reloaded corpus of %d messages." % n)
 
 
     @Command("insult", EVERYONE)
