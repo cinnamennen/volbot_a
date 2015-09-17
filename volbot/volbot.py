@@ -1,9 +1,10 @@
-"""bot.py - Main module for running Volbot"""
+"""volbot.py - Main module for running Volbot"""
 
 
 # Python Standard Library
 import collections
 import cPickle
+import os
 import random
 import re
 import sys
@@ -16,12 +17,11 @@ import irc.bot
 import markovify
 import pymongo
 import requests
-import urbandict # https://github.com/novel/py-urbandict
 import wikipedia
 
-OP_ONLY = 100
-VOICE_ONLY = 50
-EVERYONE = 0
+# Project specific imports
+from .urbandict import urbandict
+from .settings import *
 
 
 class Command:
@@ -49,6 +49,7 @@ class Trigger:
 
 
 class VolBot(irc.bot.SingleServerIRCBot):
+
     def __init__(self, channel, nickname, server, port=6667):
         self.log("Connecting to %s:%s as %s" % (server,port,nickname))
         irc.bot.SingleServerIRCBot.__init__(self, [(server, port)], nickname, nickname)
@@ -57,7 +58,8 @@ class VolBot(irc.bot.SingleServerIRCBot):
 
         # initialize shakespearean generator
         self.log("Loading shakespearean texts")
-        with open('shake2.txt') as f:
+        shake_path = os.path.join(os.path.dirname(__file__), 'extra/shake2.txt')
+        with open(shake_path) as f:
             self.shakespeare = markovify.Text(f.read())
 
         # set up db
@@ -67,13 +69,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
 
         # initialize volify markov thing
         self.log("Loading chat history for volify")
-
-        messages = self.db.messages.find(
-            {"nick": {"$ne": self._nickname}},
-            limit=10000, 
-            sort=[("time", pymongo.DESCENDING)]
-        )
-        self.volify = markovify.Text('. '.join(doc['message'] for doc in messages)) # the idea is that it grabs the most recent 10,000 messages
+        self.load_volify()
 
         self.ignored = set(['volbot', 'stuessbot'])
 
@@ -82,17 +78,26 @@ class VolBot(irc.bot.SingleServerIRCBot):
         self.triggers = []
         self.register_stuff()
 
+    def load_volify(self):
+        messages = self.db.messages.find(
+            {
+                "nick": {"$ne": self._nickname},
+                "message": {"$regex": "^[^!].*$"},
+            },
+            limit=10000,
+            sort=[("time", pymongo.DESCENDING)]
+        ) # the idea is that it grabs the most recent 10,000 messages
+        self.volify = markovify.Text('. '.join(doc['message'] for doc in messages))
+        return messages.count()
 
     def on_nicknameinuse(self, conn, e):
         """Handle when our nickname is already taken"""
         conn.nick(conn.get_nickname() + "_")
 
-
     def on_welcome(self, conn, e):
         """Handle successful connection to IRC server"""
         self.log("Connected to IRC server.")
         conn.join(self.channel)
-
 
     def on_privmsg(self, conn, e):
         """Handle a private message"""
@@ -103,7 +108,6 @@ class VolBot(irc.bot.SingleServerIRCBot):
 
         self.log_msg(nick, nick, msg)
         self.do_command(e, nick, parts[0], parts[1:])
-
 
     def on_pubmsg(self, conn, e):
         """Handle a message in a channel"""
@@ -134,7 +138,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
     def log(self, msg):
         timestamp = time.strftime('%m-%d-%y %H:%M:%S')
         print '[%s] %s' % (timestamp, msg)
-        
+
     def log_msg(self, chan, nick, msg):
 
         self.log('<%s> %s: %s' % (chan, nick, msg))
@@ -150,6 +154,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
     # disabled because people abuse too much
     # may re-enable if we can find a way to make it safe
     # @Trigger(r"^[0-9\+\-/\*\(\)\s\.%]+$")
+
     def on_calc(self, sender, channel, msg):
         """Trigger handler for calculations"""
         # require at least one number
@@ -160,14 +165,12 @@ class VolBot(irc.bot.SingleServerIRCBot):
         except:
             self.privmsg(channel, "no.")
 
-
     @Trigger(r"^.*\b[iI][rR][cC]\b.*$")
     def on_talks_about_irc(self, sender, channel, msg):
         """Trigger handler for when someone says IRC (based on inside joke)"""
         if random.randint(1,100) == 100:
             message = "\"" + msg + "\" -- " + sender
             self.privmsg(channel, message)
-
 
     @Trigger(r"^.*\b[a-zA-Z]{2}[a-zA-Z]+[bcdfgklmnprstvwxz]er\b.*$")
     def on_er(self, sender, channel, msg):
@@ -176,14 +179,12 @@ class VolBot(irc.bot.SingleServerIRCBot):
             word = random.choice(er_words)
             self.privmsg(channel, "%s? I hardly know 'er!" % word)
 
-
     @Trigger(r".*\bay+\b")
     def on_ayy(self, sender, channel, msg):
         """Trigger handler for ayy, lmao"""
         ayy = re.findall(r".*\bay+\b", msg)
         message = 'lma' + (ayy[0].count('y') - 1) * 'o'
         self.privmsg(channel, message)
-        
 
     @Trigger("^.*$")
     def on_table_flip(self, sender, channel, msg):
@@ -191,12 +192,10 @@ class VolBot(irc.bot.SingleServerIRCBot):
         if u'\u253B' in msg:
             self.privmsg(channel, u"\u252C\u2500\u252C\u30CE(\xBA_\xBA\u30CE)")
 
-
     @Trigger(r"what are tho+se")
     def on_those(self, sender, channel, msg):
         """Trigger for what are those"""
         self.privmsg(channel, "WHAT ARE THOOOOOOOOOOSE")
-
 
     @Trigger(r"^.*https?://[^\s]+.*$")
     def on_link(self, sender, channel, msg):
@@ -215,7 +214,6 @@ class VolBot(irc.bot.SingleServerIRCBot):
             except:
                 pass
 
-
     @Command("curse", EVERYONE)
     def cmd_curse(self, sender, channel, cmd, args):
         """curse <nick>\nPut a curse on <nick>."""
@@ -226,12 +224,12 @@ class VolBot(irc.bot.SingleServerIRCBot):
             victim = sender
 
         # load curses
-        with open('curses.txt', 'r') as f:
+        curses_path = os.path.join(os.path.dirname(__file__), 'extra/curses.txt')
+        with open(curses_path, 'r') as f:
             curses = list(cPickle.load(f))
 
         # send a random curse
         self.privmsg(channel, "%s: %s" % (victim, random.choice(curses)))
-
 
     @Command("quit", OP_ONLY)
     def cmd_quit(self, sender, channel, cmd, args):
@@ -239,20 +237,17 @@ class VolBot(irc.bot.SingleServerIRCBot):
         self.privmsg(channel, "bye")
         self.die()
 
-
     @Command("ignore", OP_ONLY)
     def cmd_ignore(self, sender, channel, cmd, args):
         """ignore <nick>\nIgnore <nick>."""
         if len(args) > 0:
             self.ignored.add(args[0])
 
-
     @Command("unignore", OP_ONLY)
     def cmd_unignore(self, sender, channel, cmd, args):
         """unignore <nick>\nStop ignoring <nick>."""
         if len(args) > 0:
             self.ignored.remove(args[0])
-
 
     @Command("help", EVERYONE)
     def cmd_help(self, sender, channel, cmd, args):
@@ -272,12 +267,10 @@ class VolBot(irc.bot.SingleServerIRCBot):
             docs = self.commands[helpcmd.lower()].__doc__
             self.privmsg(channel, docs)
 
-
     @Command("shakespeare", EVERYONE)
     def cmd_shakespeare(self, sender, channel, cmd, args):
         """shakespeare\nGenerate some classic literature.."""
         self.privmsg(channel, self.shakespeare.make_short_sentence(500))
-
 
     @Command("stats", EVERYONE)
     def cmd_stats(self, sender, channel, cmd, args):
@@ -306,10 +299,10 @@ class VolBot(irc.bot.SingleServerIRCBot):
             'once', 'during', 'out', 'very', 'having', 'with', 'they', 'own', 'an', 'be',
             'some', 'for', 'do', 'its', 'yours', 'such', 'into', 'of', 'most', 'itself', 'other',
             'off', 'is', 's', 'am', 'or', 'who', 'as', 'from', 'him', 'each', 'the', 'themselves',
-            'until', 'below', 'are', 'we', 'these', 'your', 'his', 'through', 'don', 'nor', 'me', 
-            'were', 'her', 'more', 'himself', 'this', 'down', 'should', 'our', 'their', 'while', 
-            'above', 'both', 'up', 'to', 'ours', 'had', 'she', 'all', 'no', 'when', 'at', 'any', 
-            'before', 'them', 'same', 'and', 'been', 'have', 'in', 'will', 'on', 'does', 
+            'until', 'below', 'are', 'we', 'these', 'your', 'his', 'through', 'don', 'nor', 'me',
+            'were', 'her', 'more', 'himself', 'this', 'down', 'should', 'our', 'their', 'while',
+            'above', 'both', 'up', 'to', 'ours', 'had', 'she', 'all', 'no', 'when', 'at', 'any',
+            'before', 'them', 'same', 'and', 'been', 'have', 'in', 'will', 'on', 'does',
             'yourselves', 'then', 'that', 'because', 'what', 'over', 'why', 'so', 'can', 'did',
             'not', 'now', 'under', 'he', 'you', 'herself', 'has', 'just', 'where', 'too', 'only',
             'myself', 'which', 'those', 'i', 'after', 'few', 'whom', 't', 'being', 'if', 'theirs',
@@ -318,30 +311,22 @@ class VolBot(irc.bot.SingleServerIRCBot):
 
         favorites = [(w,c) for w, c in counter.most_common() if w not in stop][:10]
 
-        self.privmsg(channel, "%s sent %d messages of %d logged messages (%.2f%%)" % 
+        self.privmsg(channel, "%s sent %d messages of %d logged messages (%.2f%%)" %
             (nick, nick_count, all_count, percent))
         self.privmsg(channel, "Used %d unique words. Favorites: %s" % (wc, ', '.join(
             "%s (%.2f%%)" % (w,(float(c)/wc)) for w,c in favorites
         )))
-
 
     @Command("volify", EVERYONE)
     def cmd_volify(self, sender, channel, cmd, args):
         """volify\nSee what we really sound like."""
         self.privmsg(channel, self.volify.make_short_sentence(500))
 
-
     @Command("rlvolify", OP_ONLY)
     def cmd_rlvolify(self, sender, channel, cmd, args):
         """rlvolify\nReload the chat logs for the volify command"""
-        messages = self.db.messages.find(
-            {"nick": {"$ne": self._nickname}},
-            limit=10000, 
-            sort=[("time", pymongo.ASCENDING)]
-        )
-        self.volify = markovify.Text('. '.join(doc['message'] for doc in messages)) # the idea is that it grabs the most recent 10,000 messages
-        self.privmsg(channel, "Reloaded.")
-
+        n = self.load_volify()
+        self.privmsg(channel, "Reloaded corpus of %d messages." % n)
 
     @Command("insult", EVERYONE)
     def cmd_insult(self, sender, channel, cmd, args):
@@ -379,12 +364,11 @@ class VolBot(irc.bot.SingleServerIRCBot):
             insult = random.choice(compliments).replace('<nick>', victim)
             self.privmsg(channel, insult)
 
-
     @Command("tellmeabout", EVERYONE)
     def cmd_tellmeabout(self, sender, channel, cmd, args):
         """tellmeabout [thing]\nGet basic info on <thing>."""
 
-	    #get the thing to search for
+        # get the thing to search for
         if len(args) > 0:
             #Get total query
             query = " ".join(args)
@@ -405,7 +389,6 @@ class VolBot(irc.bot.SingleServerIRCBot):
         except wikipedia.exceptions.WikipediaException:
             self.privmsg(channel, "Sorry, can't find that.")
 
-
     def do_command(self, e, target, cmd, args):
         """Find the appropriate command handler and call it"""
         nick = e.source.nick
@@ -415,7 +398,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
         if cmd.lower() in self.commands:
             # if so, look up and call the command handler
             handler = self.commands[cmd.lower()]
-            
+
             chan = self.channels[self.channel]
 
             user_level = 0
@@ -436,7 +419,6 @@ class VolBot(irc.bot.SingleServerIRCBot):
         else:
             # otherwise print an error message
             self.privmsg(target, "what?")
-
 
     @Command("ud", EVERYONE)
     def cmd_ud(self, sender, channel, cmd, args):
@@ -459,7 +441,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
     @Command("last", EVERYONE)
     def cmd_last(self, sender, channel, cmd, args):
         """last [name] [num of messages]\nShow the last [num of messages] sent by [name]"""
-        
+
         # make the default to be sender and 1
         if len(args) > 1:
             target = args[0]
@@ -493,16 +475,12 @@ class VolBot(irc.bot.SingleServerIRCBot):
 
         if target == sender:
             del message_list[0]
-        
+
         #prepend user
         for i in range(0, len(message_list)):
             message_list[i] = target + ": " + message_list[i]
 
         self.privmsg(channel, "\n".join(message_list))
-
-        
-
-
 
     def register_stuff(self):
         """Automatically find and store command/trigger handlers"""
@@ -526,13 +504,11 @@ class VolBot(irc.bot.SingleServerIRCBot):
                 self.log('registered trigger %s to %s()' % (pattern, obj.__name__))
                 self.triggers.append((re.compile(pattern), obj))
 
-
     def privmsg(self, target, msg):
         """Send a message to a target, split by newlines automatically"""
         lines = msg.split('\n')
         for line in lines:
             self.send_split(target, line)
-
 
     def send_split(self, target, text):
         """Send a single line to a target, splitting by maximum line length"""
