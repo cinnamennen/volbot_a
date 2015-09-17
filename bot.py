@@ -67,13 +67,8 @@ class VolBot(irc.bot.SingleServerIRCBot):
 
         # initialize volify markov thing
         self.log("Loading chat history for volify")
+        self.load_volify()
 
-        messages = self.db.messages.find(
-            {"nick": {"$ne": self._nickname}},
-            limit=10000, 
-            sort=[("time", pymongo.DESCENDING)]
-        )
-        self.volify = markovify.Text('. '.join(doc['message'] for doc in messages)) # the idea is that it grabs the most recent 10,000 messages
 
         self.ignored = set(['volbot', 'stuessbot'])
 
@@ -81,6 +76,18 @@ class VolBot(irc.bot.SingleServerIRCBot):
         self.commands = {}
         self.triggers = []
         self.register_stuff()
+
+
+    def load_volify(self):
+        messages = self.db.messages.find(
+            {
+                "nick": {"$ne": self._nickname},
+                "message": {"$regex": "^[^!].*$"},
+            },
+            limit=10000, 
+            sort=[("time", pymongo.DESCENDING)]
+        ) # the idea is that it grabs the most recent 10,000 messages
+        self.volify = markovify.Text('. '.join(doc['message'] for doc in messages))
 
 
     def on_nicknameinuse(self, conn, e):
@@ -334,12 +341,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
     @Command("rlvolify", OP_ONLY)
     def cmd_rlvolify(self, sender, channel, cmd, args):
         """rlvolify\nReload the chat logs for the volify command"""
-        messages = self.db.messages.find(
-            {"nick": {"$ne": self._nickname}},
-            limit=10000, 
-            sort=[("time", pymongo.ASCENDING)]
-        )
-        self.volify = markovify.Text('. '.join(doc['message'] for doc in messages)) # the idea is that it grabs the most recent 10,000 messages
+        self.load_volify()
         self.privmsg(channel, "Reloaded.")
 
 
