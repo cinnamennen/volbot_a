@@ -15,6 +15,7 @@ from string import letters, digits, punctuation
 # Third Party Libraries
 import irc.bot
 import markovify
+import microsofttranslator
 import pymongo
 import requests
 import wikipedia
@@ -70,6 +71,10 @@ class VolBot(irc.bot.SingleServerIRCBot):
         # initialize volify markov thing
         self.log("Loading chat history for volify")
         self.load_volify()
+
+        # initialize translator
+        # pls do not abuse API key
+        self.translator = microsofttranslator.Translator('volbot', '5n6uDST15barp2ScGZe/ylNW4j388lZeooy+tbAfqo4=')
 
         self.ignored = set(['volbot', 'stuessbot'])
 
@@ -317,6 +322,21 @@ class VolBot(irc.bot.SingleServerIRCBot):
             "%s (%.2f%%)" % (w,(float(c)/wc)) for w,c in favorites
         )))
 
+    @Command("translate", EVERYONE)
+    def cmd_translate(self, sender, channel, cmd, args):
+        """translate [-<language>] <text>\nTranslate text to given language code (default en)"""
+        if len(args) == 0:
+            return
+
+        if args[0].startswith('-'):
+            lang = args[0][1:]
+            text = ' '.join(args[1:])
+        else:
+            lang = 'en'
+            text = ' '.join(args)
+            
+        self.privmsg(channel, self.translator.translate(text, lang))
+
     @Command("volify", EVERYONE)
     def cmd_volify(self, sender, channel, cmd, args):
         """volify\nSee what we really sound like."""
@@ -440,45 +460,32 @@ class VolBot(irc.bot.SingleServerIRCBot):
 
     @Command("last", EVERYONE)
     def cmd_last(self, sender, channel, cmd, args):
-        """last [name] [num of messages]\nShow the last [num of messages] sent by [name]"""
+        """last [num] [name]\nShow the last [num of messages] sent by [name]"""
 
         # make the default to be sender and 1
-        if len(args) > 1:
-            target = args[0]
-            num = int(args[1])
-        elif len(args) == 1:
-            if re.search(r'\b\d+\b', args[0]):
-                target = sender
+        num = 1
+        if len(args) >= 1:
+            try:
                 num = int(args[0])
-            else:
-                target = args[0]
-                num = 1
+            except:
+                self.privmsg(channel, "Invalid number.")
+                return
+            if num < 1 or num > 10:
+                self.privmsg(channel, "Invalid number.")
+                return
+
+        if len(args) > 1:
+            target = args[1]
+
+            messages = self.db.messages.find({"nick": target}, limit=num, sort=[("time", pymongo.DESCENDING)])
+
+            if target == sender:
+                messages.skip(1)
         else:
-            target = sender
-            num = 1
+            messages = self.db.messages.find(dict(), limit=num, sort=[("time", pymongo.DESCENDING)])
 
-        #impose a max number of messages
-        if num > 10:
-            num = 10
-        elif num < 0:
-            num = 1
-
-        # handle the command being sent and not sending that message back
-        if target == sender:
-            num += 1
-
-        # get messages
-        message_list = []
-        messages = self.db.messages.find({"nick": target}, limit=num, sort=[("time", pymongo.DESCENDING)])
-        for doc in messages:
-            message_list.append(doc['message'])
-
-        if target == sender:
-            del message_list[0]
-
-        #prepend user
-        for i in range(0, len(message_list)):
-            message_list[i] = target + ": " + message_list[i]
+        messages_list = [doc['nick'] + ': ' + doc['message'] for doc in messages]
+        message_list.reverse()
 
         self.privmsg(channel, "\n".join(message_list))
 
