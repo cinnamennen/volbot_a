@@ -50,9 +50,8 @@ class Trigger:
 
 
 class VolBot(irc.bot.SingleServerIRCBot):
-
     def __init__(self, channel, nickname, server, port=6667):
-        self.log("Connecting to %s:%s as %s" % (server,port,nickname))
+        self.log("Connecting to %s:%s as %s" % (server, port, nickname))
         irc.bot.SingleServerIRCBot.__init__(self, [(server, port)], nickname, nickname)
 
         self.channel = channel
@@ -76,7 +75,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
         # pls do not abuse API key
         self.translator = microsofttranslator.Translator('volbot', '5n6uDST15barp2ScGZe/ylNW4j388lZeooy+tbAfqo4=')
 
-        self.ignored = set(['volbot', 'stuessbot'])
+        self.ignored = {'volbot', 'stuessbot'}
 
         # setup commands and triggers
         self.commands = {}
@@ -91,7 +90,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
             },
             limit=10000,
             sort=[("time", pymongo.DESCENDING)]
-        ) # the idea is that it grabs the most recent 10,000 messages
+        )  # the idea is that it grabs the most recent 10,000 messages
         self.volify = markovify.Text('. '.join(doc['message'] for doc in messages))
         return messages.count()
 
@@ -155,7 +154,6 @@ class VolBot(irc.bot.SingleServerIRCBot):
             "message": msg,
         })
 
-
     # disabled because people abuse too much
     # may re-enable if we can find a way to make it safe
     # @Trigger(r"^[0-9\+\-/\*\(\)\s\.%]+$")
@@ -173,13 +171,13 @@ class VolBot(irc.bot.SingleServerIRCBot):
     @Trigger(r"^.*\b[iI][rR][cC]\b.*$")
     def on_talks_about_irc(self, sender, channel, msg):
         """Trigger handler for when someone says IRC (based on inside joke)"""
-        if random.randint(1,100) == 100:
+        if random.randint(1, 100) == 100:
             message = "\"" + msg + "\" -- " + sender
             self.privmsg(channel, message)
 
     @Trigger(r"^.*\b[a-zA-Z]{2}[a-zA-Z]+[bcdfgklmnprstvwxz]er\b.*$")
     def on_er(self, sender, channel, msg):
-        if random.randint(1,100) == 100:
+        if random.randint(1, 100) == 100:
             er_words = re.findall(r"\b[a-zA-Z]{2}[a-zA-Z]+[bcdfgklmnprstvwxz]er\b", msg)
             word = random.choice(er_words)
             self.privmsg(channel, "%s? I hardly know 'er!" % word)
@@ -299,27 +297,23 @@ class VolBot(irc.bot.SingleServerIRCBot):
             counter.update([clean(word) for word in doc['message'].split()])
         # total number of words from user.
         wc = sum(counter.itervalues())
-        stop = set([
-            'ourselves', 'hers', 'between', 'yourself', 'but', 'again', 'there', 'about',
-            'once', 'during', 'out', 'very', 'having', 'with', 'they', 'own', 'an', 'be',
-            'some', 'for', 'do', 'its', 'yours', 'such', 'into', 'of', 'most', 'itself', 'other',
-            'off', 'is', 's', 'am', 'or', 'who', 'as', 'from', 'him', 'each', 'the', 'themselves',
-            'until', 'below', 'are', 'we', 'these', 'your', 'his', 'through', 'don', 'nor', 'me',
-            'were', 'her', 'more', 'himself', 'this', 'down', 'should', 'our', 'their', 'while',
-            'above', 'both', 'up', 'to', 'ours', 'had', 'she', 'all', 'no', 'when', 'at', 'any',
-            'before', 'them', 'same', 'and', 'been', 'have', 'in', 'will', 'on', 'does',
-            'yourselves', 'then', 'that', 'because', 'what', 'over', 'why', 'so', 'can', 'did',
-            'not', 'now', 'under', 'he', 'you', 'herself', 'has', 'just', 'where', 'too', 'only',
-            'myself', 'which', 'those', 'i', 'after', 'few', 'whom', 't', 'being', 'if', 'theirs',
-            'my', 'against', 'a', 'by', 'doing', 'it', 'how', 'further', 'was', 'here', 'than'
-        ])
+        stop = {'ourselves', 'hers', 'between', 'yourself', 'but', 'again', 'there', 'about', 'once', 'during', 'out',
+                'very', 'having', 'with', 'they', 'own', 'an', 'be', 'some', 'for', 'do', 'its', 'yours', 'such',
+                'into', 'of', 'most', 'itself', 'other', 'off', 'is', 's', 'am', 'or', 'who', 'as', 'from', 'him',
+                'each', 'the', 'themselves', 'until', 'below', 'are', 'we', 'these', 'your', 'his', 'through', 'don',
+                'nor', 'me', 'were', 'her', 'more', 'himself', 'this', 'down', 'should', 'our', 'their', 'while',
+                'above', 'both', 'up', 'to', 'ours', 'had', 'she', 'all', 'no', 'when', 'at', 'any', 'before', 'them',
+                'same', 'and', 'been', 'have', 'in', 'will', 'on', 'does', 'yourselves', 'then', 'that', 'because',
+                'what', 'over', 'why', 'so', 'can', 'did', 'not', 'now', 'under', 'he', 'you', 'herself', 'has', 'just',
+                'where', 'too', 'only', 'myself', 'which', 'those', 'i', 'after', 'few', 'whom', 't', 'being', 'if',
+                'theirs', 'my', 'against', 'a', 'by', 'doing', 'it', 'how', 'further', 'was', 'here', 'than'}
 
-        favorites = [(w,c) for w, c in counter.most_common() if w not in stop][:10]
+        favorites = [(w, c) for w, c in counter.most_common() if w not in stop][:10]
 
         self.privmsg(channel, "%s sent %d messages of %d logged messages (%.2f%%)" %
-            (nick, nick_count, all_count, percent))
+                     (nick, nick_count, all_count, percent))
         self.privmsg(channel, "Used %d unique words. Favorites: %s" % (wc, ', '.join(
-            "%s (%.2f%%)" % (w,(float(c)/wc)) for w,c in favorites
+            "%s (%.2f%%)" % (w, (float(c) / wc)) for w, c in favorites
         )))
 
     @Command("translate", EVERYONE)
@@ -334,7 +328,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
         else:
             lang = 'en'
             text = ' '.join(args)
-            
+
         self.privmsg(channel, self.translator.translate(text, lang))
 
     @Command("volify", EVERYONE)
@@ -390,15 +384,15 @@ class VolBot(irc.bot.SingleServerIRCBot):
 
         # get the thing to search for
         if len(args) > 0:
-            #Get total query
+            # Get total query
             query = " ".join(args)
         else:
-            #otherwise get a random page
+            # otherwise get a random page
             random = wikipedia.random(400)
             query = random[0]
 
         try:
-            #3 sentence limit. Can be extended later
+            # 3 sentence limit. Can be extended later
             summary = wikipedia.summary(query, 3)
             summary = summary.replace('\n', ' ')
             self.privmsg(channel, summary)
@@ -519,7 +513,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
 
     def send_split(self, target, text):
         """Send a single line to a target, splitting by maximum line length"""
-        MAX_LEN = 400 # fuck it
+        MAX_LEN = 400  # fuck it
 
         text = text.encode('utf-8')
 
@@ -528,7 +522,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
 
         for word in words:
             for i in xrange(0, len(word), MAX_LEN):
-                parts.append(word[i:i+MAX_LEN])
+                parts.append(word[i:i + MAX_LEN])
 
         if len(parts) == 0:
             return
@@ -545,7 +539,6 @@ class VolBot(irc.bot.SingleServerIRCBot):
         if len(line) > 0:
             self.log_msg(target, self._nickname, line.decode('utf-8'))
             self.connection.privmsg(target, line.decode('utf-8'))
-
 
 
 def main():

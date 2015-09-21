@@ -25,6 +25,8 @@ class TermTypeRandom(TermType):
 
 
 class UrbanDictParser(HTMLParser):
+    def error(self, message):
+        pass
 
     def __init__(self, *args, **kwargs):
         HTMLParser.__init__(self, *args, **kwargs)
@@ -46,7 +48,7 @@ class UrbanDictParser(HTMLParser):
 
     def handle_endtag(self, tag):
         if tag == 'div':
-            #NOTE: assume there is no nested <div> in the known sections
+            # NOTE: assume there is no nested <div> in the known sections
             self._section = None
 
     def handle_data(self, data):
