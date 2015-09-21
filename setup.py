@@ -1,6 +1,5 @@
 """setup.py - Setup file for volbot"""
 
-import os
 from setuptools import setup, find_packages
 
 setup(
