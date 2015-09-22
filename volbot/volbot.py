@@ -15,7 +15,6 @@ from string import letters, digits, punctuation
 # Third Party Libraries
 import irc.bot
 import markovify
-import messages as messages
 import microsofttranslator
 import pymongo
 import requests
@@ -52,7 +51,6 @@ class Trigger:
 
 class VolBot(irc.bot.SingleServerIRCBot):
     def __init__(self, channel, nickname, server, port=6667):
-        self.volify = markovify.Text('. '.join(doc['message'] for doc in messages))
         self.log("Connecting to %s:%s as %s" % (server, port, nickname))
         irc.bot.SingleServerIRCBot.__init__(self, [(server, port)], nickname, nickname)
 
