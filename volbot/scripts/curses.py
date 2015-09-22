@@ -3,9 +3,9 @@
 
 """curses.py - Fetch curses from reddit.com/r/traditionalcurses"""
 
-
 import cPickle
 import praw
+
 
 def main():
     try:
@@ -14,7 +14,8 @@ def main():
     except:
         curses = set()
 
-    r = praw.Reddit(user_agent='Curse Scraper for Volchat IRC Channel: for use by the University of Tennessee IRC Channel.')
+    r = praw.Reddit(
+        user_agent='Curse Scraper for Volchat IRC Channel: for use by the University of Tennessee IRC Channel.')
 
     posts = r.get_subreddit('traditionalcurses').get_hot(limit=100)
 
@@ -34,6 +35,7 @@ def main():
 
     with open('curses.txt', 'w') as f:
         cPickle.dump(curses, f)
+
 
 if __name__ == '__main__':
     main()
