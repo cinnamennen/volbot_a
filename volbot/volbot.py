@@ -177,7 +177,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
 
     @Trigger(r"^.*\b[a-zA-Z]{2}[a-zA-Z]+[bcdfgklmnprstvwxz]er\b.*$")
     def on_er(self, sender, channel, msg):
-        if random.randint(1, 100) == 100:
+        if random.randint(1, 20) == 100:
             er_words = re.findall(r"\b[a-zA-Z]{2}[a-zA-Z]+[bcdfgklmnprstvwxz]er\b", msg)
             word = random.choice(er_words)
             self.privmsg(channel, "%s? I hardly know 'er!" % word)
@@ -194,6 +194,11 @@ class VolBot(irc.bot.SingleServerIRCBot):
         """Trigger handler for table flipping"""
         if u'\u253B' in msg:
             self.privmsg(channel, u"\u252C\u2500\u252C\u30CE(\xBA_\xBA\u30CE)")
+
+    @Trigger("^\s*ls\s*$")
+    def on_ls(self, sender, channel, msg):
+        """Trigger handler for ls"""
+        self.privmsg(channel, "bin dev home media opt root selinux sys usr boot etc lib mnt proc sbin srv tmp var")
 
     @Trigger(r"what are tho+se")
     def on_those(self, sender, channel, msg):
