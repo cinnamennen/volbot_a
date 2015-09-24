@@ -245,6 +245,29 @@ class VolBot(irc.bot.SingleServerIRCBot):
         self.privmsg(channel, "bye")
         self.die()
 
+    @Command("mimic", EVERYONE)
+    def cmd_mimic(self, sender, channel, cmd, args):
+        """mimic [user]\nMimic a user."""
+        if len(args) > 0:
+            nick = args[0]
+        else:
+            nick = sender
+
+        messages = self.db.messages.find(
+            {
+                "nick": nick,
+                "message": {"$regex": "^[^!].*$"},
+            },
+            limit=10000,
+            sort=[("time", pymongo.DESCENDING)]
+        )  # the idea is that it grabs the most recent 10,000 messages
+
+        if messages.count() < 100:
+            self.privmsg(channel, "Sorry, not enough data for that user :(")
+            return
+        user_simulator = markovify.Text('. '.join(doc['message'] for doc in messages))
+        self.privmsg(channel, user_simulator.make_short_sentence(500))
+
     @Command("ignore", OP_ONLY)
     def cmd_ignore(self, sender, channel, cmd, args):
         """ignore <nick>\nIgnore <nick>."""
