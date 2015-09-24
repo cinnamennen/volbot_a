@@ -1,5 +1,6 @@
 """setup.py - Setup file for volbot"""
 
+import os
 from setuptools import setup, find_packages
 
 setup(
@@ -18,8 +19,10 @@ setup(
         'requests',
         'wikipedia',
         'praw',
+        'microsofttranslator',
     ],
     entry_points={
-        'console_scripts': ['volbot=volbot.volbot:main', 'volbot-curses=volbot.scripts.curses:main'],
+        'console_scripts': ['volbot=volbot.volbot:main', 'volbot-curses=volbot.scripts.curses:main',
+                            'volbot-dirtytalk=volbot.scripts.dirtytalk:main'],
     }
 )

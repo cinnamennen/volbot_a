@@ -11,11 +11,8 @@ if sys.version < '3':
     from urllib2 import urlopen
     from HTMLParser import HTMLParser
 else:
-    # noinspection PyUnresolvedReferences
     from urllib.request import urlopen
-    # noinspection PyUnresolvedReferences
     from urllib.parse import quote as urlquote
-    # noinspection PyUnresolvedReferences
     from html.parser import HTMLParser
 
 
@@ -31,8 +28,8 @@ class UrbanDictParser(HTMLParser):
     def error(self, message):
         pass
 
-    def __init__(self):
-        HTMLParser.__init__(self)
+    def __init__(self, *args, **kwargs):
+        HTMLParser.__init__(self, *args, **kwargs)
         self._section = None
         self.translations = []
 
@@ -81,7 +78,7 @@ def define(term):
     f = urlopen(url)
     data = f.read().decode('utf-8')
 
-    urbandictparser = UrbanDictParser()
-    urbandictparser.feed(data)
+    urbanDictParser = UrbanDictParser()
+    urbanDictParser.feed(data)
 
-    return urbandictparser.translations
+    return urbanDictParser.translations
