@@ -222,7 +222,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
         """curse <nick>\nPut a curse on <nick>."""
         # default to sender if they didn't specify a target
         if len(args) > 0:
-            victim = args[0]
+            victim = " ".join(args);
         else:
             victim = sender
 
