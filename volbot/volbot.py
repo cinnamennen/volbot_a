@@ -227,7 +227,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
         """curse <nick>\nPut a curse on <nick>."""
         # default to sender if they didn't specify a target
         if len(args) > 0:
-            victim = args[0]
+            victim = "_".join(args);
         else:
             victim = sender
 
@@ -238,6 +238,26 @@ class VolBot(irc.bot.SingleServerIRCBot):
 
         # send a random curse
         self.privmsg(channel, "%s: %s" % (victim, random.choice(curses)))
+
+    @Command("dirtytalk", EVERYONE)
+    def cmd_dirtytalk(self, sender, channel, cmd, args):
+        """dirtytalk [nick]\nTalk dirty to the channel or to [nick]."""
+        # address the entire channel if they didn't specify a target
+        if len(args) > 0:
+            victim = args[0]
+        else:
+            victim = None
+
+        # load dirty talk
+        dirtytalk_path = os.path.join(os.path.dirname(__file__), 'extra/dirtytalk.txt')
+        with open(dirtytalk_path, 'r') as f:
+            dirtytalk_phrases = list(cPickle.load(f))
+
+        # send a random dirty message
+        if victim is not None:
+            self.privmsg(channel, "%s: %s" % (victim, random.choice(dirtytalk_phrases)))
+        else:
+            self.privmsg(channel, "%s" % (random.choice(dirtytalk_phrases)))
 
     @Command("quit", OP_ONLY)
     def cmd_quit(self, sender, channel, cmd, args):
@@ -375,7 +395,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
         """insult <nick>\nSay mean things to the user."""
 
         if len(args) > 0:
-            victim = args[0]
+            victim = "_".join(args);
         else:
             victim = sender
 
