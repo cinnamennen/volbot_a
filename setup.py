@@ -22,6 +22,7 @@ setup(
         'microsofttranslator',
     ],
     entry_points={
-        'console_scripts': ['volbot=volbot.volbot:main', 'volbot-curses=volbot.scripts.curses:main'],
+        'console_scripts': ['volbot=volbot.volbot:main', 'volbot-curses=volbot.scripts.curses:main',
+                            'volbot-dirtytalk=volbot.scripts.dirtytalk:main'],
     }
 )
