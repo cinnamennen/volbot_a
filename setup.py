@@ -19,6 +19,7 @@ setup(
         'requests',
         'wikipedia',
         'praw',
+        'microsofttranslator',
     ],
     entry_points={
         'console_scripts': ['volbot=volbot.volbot:main', 'volbot-curses=volbot.scripts.curses:main'],
