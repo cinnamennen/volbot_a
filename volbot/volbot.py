@@ -82,6 +82,10 @@ class VolBot(irc.bot.SingleServerIRCBot):
         self.triggers = []
         self.register_stuff()
 
+        # setup pipe flag
+        self.pipe = False
+        self.pipe_stack = []
+
     def load_volify(self):
         messages = self.db.messages.find(
             {
@@ -423,37 +427,6 @@ class VolBot(irc.bot.SingleServerIRCBot):
         except wikipedia.exceptions.WikipediaException:
             self.privmsg(channel, "Sorry, can't find that.")
 
-    def do_command(self, e, target, cmd, args):
-        """Find the appropriate command handler and call it"""
-        nick = e.source.nick
-        conn = self.connection
-
-        # check if command exists
-        if cmd.lower() in self.commands:
-            # if so, look up and call the command handler
-            handler = self.commands[cmd.lower()]
-
-            chan = self.channels[self.channel]
-
-            user_level = 0
-            if chan.is_oper(nick):
-                user_level = 100
-            elif chan.is_voiced(nick):
-                user_level = 50
-
-            if user_level >= handler.cmd_perms:
-                try:
-                    handler(nick, target, cmd, args)
-                except:
-                    self.privmsg(target, "Oops. Internal error. Check my logs.")
-                    traceback.print_exc()
-
-            else:
-                self.privmsg(target, "no way")
-        else:
-            # otherwise print an error message
-            self.privmsg(target, "what?")
-
     @Command("ud", EVERYONE)
     def cmd_ud(self, sender, channel, cmd, args):
         """ud [word]\nLook up a word on Urban Dictionary."""
@@ -503,6 +476,44 @@ class VolBot(irc.bot.SingleServerIRCBot):
         lines.reverse()
         self.privmsg(channel, "\n".join(lines))
 
+    @Command("pipe", EVERYONE)
+    def cmd_pipe(self, e, sender, channel, cmd, args):
+        """pipe <command1>|<command2>\nPipe the output of command1 in as the arguments to command2 -- notice no spaces"""
+
+        # tell the object we are enacting a pipe
+        self.pipe = True
+        self.log("Pipe lock set to True")
+
+        #get the original message back
+        msg = ' '.join(args)
+        commands = msg.split('|', 1)
+        self.log('||'.join(commands))
+        if len(commands) != 2:
+            self.pipe = False
+            self.log("Pipe lock set to False")
+            self.privmsg(channel, "You suck at formatting (or have the wrong number of arguments). :(")
+            # because its fun
+            self.do_command(e, channel, 'curse', ['kylebshr'])
+            return
+
+        first_command = commands[0].split(' ')
+        self.do_command(e, channel, first_command[0], first_command[1:])
+
+        output = self.pipe_stack.pop()
+
+        second_command = commands[1].split(' ')
+        # fix daisy chaining somehow
+        self.pipe = False
+        self.log("Pipe lock set to False")
+
+        self.do_command(e, channel, second_command[0], second_command[1:] + output.split(' '))
+
+
+    @Command("echo", EVERYONE)
+    def cmd_echo(self, sender, channel, cmd, args):
+        '''echo [arg1, arg2....]\nDo I really need to tell you what this does?'''
+        self.privmsg(channel, ' '.join(args))
+
     def register_stuff(self):
         """Automatically find and store command/trigger handlers"""
 
@@ -527,9 +538,13 @@ class VolBot(irc.bot.SingleServerIRCBot):
 
     def privmsg(self, target, msg):
         """Send a message to a target, split by newlines automatically"""
-        lines = msg.split('\n')
-        for line in lines:
-            self.send_split(target, line)
+        # if piping this command, push the command onto the pipe stack
+        if self.pipe:
+            self.pipe_stack.append(msg)
+        else:
+            lines = msg.split('\n')
+            for line in lines:
+                self.send_split(target, line)
 
     def send_split(self, target, text):
         """Send a single line to a target, splitting by maximum line length"""
@@ -560,6 +575,42 @@ class VolBot(irc.bot.SingleServerIRCBot):
             self.log_msg(target, self._nickname, line.decode('utf-8'))
             self.connection.privmsg(target, line.decode('utf-8'))
 
+    def do_command(self, e, target, cmd, args):
+        """Find the appropriate command handler and call it"""
+        nick = e.source.nick
+        conn = self.connection
+
+        # check if command exists
+        if cmd.lower() in self.commands:
+            # if so, look up and call the command handler
+            handler = self.commands[cmd.lower()]
+
+            chan = self.channels[self.channel]
+
+            user_level = 0
+            if chan.is_oper(nick):
+                user_level = 100
+            elif chan.is_voiced(nick):
+                user_level = 50
+
+            if user_level >= handler.cmd_perms:
+                try:
+                    # have to edit this since i need e in pipe to call do_command
+                    if cmd.lower() == "pipe":
+                        handler(e, nick, target, cmd, args)
+                        self.log("Got to pipe")
+                    else:
+                        handler(nick, target, cmd, args)
+                except:
+                    self.pipe = False
+                    self.privmsg(target, "Oops. Internal error. Check my logs.")
+                    traceback.print_exc()
+
+            else:
+                self.privmsg(target, "no way")
+        else:
+            # otherwise print an error message
+            self.privmsg(target, "what?")
 
 def main():
     # get command line args
