@@ -585,11 +585,11 @@ class VolBot(irc.bot.SingleServerIRCBot):
             # if so, store it in the appropriate place
             if hasattr(obj, "cmd_label"):
                 label = getattr(obj, "cmd_label")
-                self.log('registered command %s to %s()' % (label, obj.__name__))
+                self.log('registered command "%s" to %s()' % (label, obj.__name__))
                 self.commands[label.lower()] = obj
             elif hasattr(obj, "trigger_pattern"):
                 pattern = getattr(obj, "trigger_pattern")
-                self.log('registered trigger %s to %s()' % (pattern, obj.__name__))
+                self.log('registered trigger "%s" to %s()' % (pattern, obj.__name__))
                 self.triggers.append((re.compile(pattern), obj))
 
     def privmsg(self, target, msg):
