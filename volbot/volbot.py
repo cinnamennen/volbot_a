@@ -21,8 +21,10 @@ import requests
 import wikipedia
 
 # Project specific imports
+from responses import get_resp
 from .urbandict import urbandict
 from .settings import *
+
 
 
 class Command:
@@ -177,7 +179,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
 
     @Trigger(r"^.*\b[a-zA-Z]{2}[a-zA-Z]+[bcdfgklmnprstvwxz]er\b.*$")
     def on_er(self, sender, channel, msg):
-        if random.randint(1, 100) == 100:
+        if random.randint(1, 20) == 100:
             er_words = re.findall(r"\b[a-zA-Z]{2}[a-zA-Z]+[bcdfgklmnprstvwxz]er\b", msg)
             word = random.choice(er_words)
             self.privmsg(channel, "%s? I hardly know 'er!" % word)
@@ -194,6 +196,11 @@ class VolBot(irc.bot.SingleServerIRCBot):
         """Trigger handler for table flipping"""
         if u'\u253B' in msg:
             self.privmsg(channel, u"\u252C\u2500\u252C\u30CE(\xBA_\xBA\u30CE)")
+
+    @Trigger("^\s*ls\s*$")
+    def on_ls(self, sender, channel, msg):
+        """Trigger handler for ls"""
+        self.privmsg(channel, "bin dev home media opt root selinux sys usr boot etc lib mnt proc sbin srv tmp var")
 
     @Trigger(r"what are tho+se")
     def on_those(self, sender, channel, msg):
@@ -257,8 +264,31 @@ class VolBot(irc.bot.SingleServerIRCBot):
     @Command("quit", OP_ONLY)
     def cmd_quit(self, sender, channel, cmd, args):
         """quit\nQuit."""
-        self.privmsg(channel, "bye")
+        self.privmsg(channel, get_resp("quit"))
         self.die()
+
+    @Command("mimic", EVERYONE)
+    def cmd_mimic(self, sender, channel, cmd, args):
+        """mimic [user]\nMimic a user."""
+        if len(args) > 0:
+            nick = args[0]
+        else:
+            nick = sender
+
+        messages = self.db.messages.find(
+            {
+                "nick": nick,
+                "message": {"$regex": "^[^!].*$"},
+            },
+            limit=10000,
+            sort=[("time", pymongo.DESCENDING)]
+        )  # the idea is that it grabs the most recent 10,000 messages
+
+        if messages.count() < 100:
+            self.privmsg(channel, "Sorry, not enough data for that user :(")
+            return
+        user_simulator = markovify.Text('. '.join(doc['message'] for doc in messages))
+        self.privmsg(channel, user_simulator.make_short_sentence(500))
 
     @Command("ignore", OP_ONLY)
     def cmd_ignore(self, sender, channel, cmd, args):
@@ -431,6 +461,37 @@ class VolBot(irc.bot.SingleServerIRCBot):
             self.privmsg(channel, message)
         except wikipedia.exceptions.WikipediaException:
             self.privmsg(channel, "Sorry, can't find that.")
+
+    def do_command(self, e, target, cmd, args):
+        """Find the appropriate command handler and call it"""
+        nick = e.source.nick
+        conn = self.connection
+
+        # check if command exists
+        if cmd.lower() in self.commands:
+            # if so, look up and call the command handler
+            handler = self.commands[cmd.lower()]
+
+            chan = self.channels[self.channel]
+
+            user_level = 0
+            if chan.is_oper(nick):
+                user_level = 100
+            elif chan.is_voiced(nick):
+                user_level = 50
+
+            if user_level >= handler.cmd_perms:
+                try:
+                    handler(nick, target, cmd, args)
+                except:
+                    self.privmsg(target,get_resp("internal_error"))
+                    traceback.print_exc()
+
+            else:
+                self.privmsg(target, get_resp("access_denied"))
+        else:
+            # otherwise print an error message
+            self.privmsg(target, get_resp("unknown_command"))
 
     @Command("ud", EVERYONE)
     def cmd_ud(self, sender, channel, cmd, args):
