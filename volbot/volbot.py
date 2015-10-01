@@ -393,9 +393,11 @@ class VolBot(irc.bot.SingleServerIRCBot):
             target = args[i][1:]
             # get last message by user that wasn't a command
             try:
-                text = self.db.messages.find({
-                    "nick": target,
-                    "message": k{"$regex": "^[^!]$"}},
+                text = self.db.messages.find(
+                    {
+                        "nick": target,
+                        "message": {"$regex": "^[^!]$"}
+                    },
                     limit=1, 
                     sort=[("time", pymongo.DESCENDING)]
                 )[0]['message']
