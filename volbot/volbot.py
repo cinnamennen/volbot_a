@@ -10,6 +10,7 @@ import re
 import sys
 import time
 import traceback
+import warnings
 from string import letters, digits, punctuation
 
 # Third Party Libraries
@@ -94,7 +95,9 @@ class VolBot(irc.bot.SingleServerIRCBot):
             limit=10000,
             sort=[("time", pymongo.DESCENDING)]
         )  # the idea is that it grabs the most recent 10,000 messages
-        self.volify = markovify.Text('. '.join(doc['message'] for doc in messages))
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            self.volify = markovify.Text('. '.join(doc['message'] for doc in messages))
         return messages.count()
 
     def on_nicknameinuse(self, conn, e):
