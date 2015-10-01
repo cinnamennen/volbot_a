@@ -14,6 +14,7 @@ from string import letters, digits, punctuation
 
 # Third Party Libraries
 import irc.bot
+import langid
 import markovify
 import microsofttranslator
 import pymongo
@@ -197,6 +198,13 @@ class VolBot(irc.bot.SingleServerIRCBot):
         if u'\u253B' in msg:
             self.privmsg(channel, u"\u252C\u2500\u252C\u30CE(\xBA_\xBA\u30CE)")
 
+    @Trigger("^.*$")
+    def on_lang(self, sender, channel, msg):
+        """Trigger handler for table flipping"""
+        lang, prob = langid.classify(msg)
+        if lang != 'en' and prob > 0.95:
+            self.privmsg(channel, self.translator.translate(msg, 'en'))
+
     @Trigger("^\s*ls\s*$")
     def on_ls(self, sender, channel, msg):
         """Trigger handler for ls"""
@@ -368,7 +376,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
 
     @Command("translate", EVERYONE)
     def cmd_translate(self, sender, channel, cmd, args):
-        """translate [-<language>] [@person] <text>\nTranslate text to given language code (default en). Adding @person gets the last message from that person and translates it"""
+        """translate [-<language>] [@person] [text]\nTranslate text to given language code (default en). Adding @person gets the last message from that person and translates it"""
         # arguments are a language code and a "person to translate" argument
         num_of_possible_args = 2
 
@@ -383,8 +391,17 @@ class VolBot(irc.bot.SingleServerIRCBot):
             i += 1
         if args[i].startswith('@'):
             target = args[i][1:]
-            messages = self.db.messages.find({"nick":target}, limit=1, sort=[("time", pymongo.DESCENDING)])
-            text = '. '.join(doc['message'] for doc in messages)
+            # get last message by user that wasn't a command
+            try:
+                text = self.db.messages.find({
+                    "nick": target,
+                    "message": k{"$regex": "^[^!]$"}},
+                    limit=1, 
+                    sort=[("time", pymongo.DESCENDING)]
+                )[0]['message']
+            except IndexError, KeyError:
+                self.privmsg(channel, "No messages from that user.")
+                return
         else:
             text = ' '.join(args[i:])
 
