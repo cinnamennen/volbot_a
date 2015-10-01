@@ -21,8 +21,10 @@ import requests
 import wikipedia
 
 # Project specific imports
+from responses import get_resp
 from .urbandict import urbandict
 from .settings import *
+
 
 
 class Command:
@@ -262,7 +264,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
     @Command("quit", OP_ONLY)
     def cmd_quit(self, sender, channel, cmd, args):
         """quit\nQuit."""
-        self.privmsg(channel, "bye")
+        self.privmsg(channel, get_resp("quit"))
         self.die()
 
     @Command("mimic", EVERYONE)
@@ -473,14 +475,14 @@ class VolBot(irc.bot.SingleServerIRCBot):
                 try:
                     handler(nick, target, cmd, args)
                 except:
-                    self.privmsg(target, "Oops. Internal error. Check my logs.")
+                    self.privmsg(target,get_resp("internal_error"))
                     traceback.print_exc()
 
             else:
-                self.privmsg(target, "no way")
+                self.privmsg(target, get_resp("access_denied"))
         else:
             # otherwise print an error message
-            self.privmsg(target, "what?")
+            self.privmsg(target, get_resp("unknown_command"))
 
     @Command("ud", EVERYONE)
     def cmd_ud(self, sender, channel, cmd, args):
