@@ -189,7 +189,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
             word = random.choice(er_words)
             self.privmsg(channel, "%s? I hardly know 'er!" % word)
 
-    @Trigger(r".*\bay+\b")
+    @Trigger(r".*\b[aA]y+\b")
     def on_ayy(self, sender, channel, msg):
         """Trigger handler for ayy, lmao"""
         ayy = re.findall(r".*\bay+\b", msg)
