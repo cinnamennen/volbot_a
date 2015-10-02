@@ -14,6 +14,7 @@ import warnings
 from string import letters, digits, punctuation
 
 # Third Party Libraries
+import bs4
 import irc.bot
 import langid
 import markovify
@@ -228,7 +229,8 @@ class VolBot(irc.bot.SingleServerIRCBot):
             # scrape the title of the webpage and send it to the channel
             try:
                 resp = requests.get(link).text
-                title = re.search(r"<title>(.*)</title>", resp).groups()[0]
+                soup = bs4.BeautifulSoup(resp, 'html.parser')
+                title = soup.find('title').get_text().strip()
                 okchars = letters + digits + punctuation + ' '
                 title = ''.join(c for c in title if c in okchars).strip()
                 self.privmsg(channel, '%s' % (title))
