@@ -24,6 +24,7 @@ import requests
 import wikipedia
 
 # Project specific imports
+import calc
 from responses import get_resp
 from .urbandict import urbandict
 from .settings import *
@@ -161,20 +162,6 @@ class VolBot(irc.bot.SingleServerIRCBot):
             "message": msg,
         })
 
-    # disabled because people abuse too much
-    # may re-enable if we can find a way to make it safe
-    # @Trigger(r"^[0-9\+\-/\*\(\)\s\.%]+$")
-
-    def on_calc(self, sender, channel, msg):
-        """Trigger handler for calculations"""
-        # require at least one number
-        if re.match('^.*[0-9].*$', msg) is None:
-            return
-        try:
-            result = self.privmsg(channel, str(eval(msg)))
-        except:
-            self.privmsg(channel, "no.")
-
     @Trigger(r"^.*\b[iI][rR][cC]\b.*$")
     def on_talks_about_irc(self, sender, channel, msg):
         """Trigger handler for when someone says IRC (based on inside joke)"""
@@ -236,6 +223,15 @@ class VolBot(irc.bot.SingleServerIRCBot):
                 self.privmsg(channel, '%s' % (title))
             except:
                 pass
+
+    @Command("calc", EVERYONE)
+    def cmd_calc(self, sender, channel, cmd, args):
+        """calc <expression>\nEvaluate an expression."""
+        msg = ' '.join(args)
+        try:
+            self.privmsg(channel, str(calc.eval(msg)))
+        except calc.CalculationException as e:
+            self.privmsg(channel, str(e))
 
     @Command("curse", EVERYONE)
     def cmd_curse(self, sender, channel, cmd, args):

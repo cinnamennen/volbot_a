@@ -17,14 +17,18 @@ MAX_FACT = 9999
 funcs = {
     'int': int,
     'float': float,
+    'bool': bool,
     'pow': pow,
     'log2': lambda x: math.log(x,2),
 }
 
+
 # pre-defined variables
-variables = {
+variables  = {
     'pi': math.pi,
     'e': math.e,
+    'True': True,
+    'False': False,
 }
 
 # make certain math library functions available
@@ -40,74 +44,27 @@ for f in math_funcs:
 
 
 ##############################################################
-# Error Handling Mechanisms
-##############################################################
-
-class CalculationException(Exception):
-    """An exception that occurs while evaluating an expression."""
-    pass
-
-def abort(msg):
-    """Raise a CalculationException with given message"""
-    raise CalculationException(msg)
-
-def check_var(name):
-    """Check if a variable exists; if not, abort"""
-    if name not in variables:
-        abort("Unknown variable: %s" % name)
-
-def check_func(name):
-    """Check if a function exists; if not, abort"""
-    if name not in funcs:
-        abort("Unknown function: %s" % name)
-
-def check_lshift(a, b):
-    """Check if left shift operands are too big; if so, abort"""
-    # a << b is equivalent to a * (2**b), so treat a as mulitplicand and b as exponent
-    if a > MAX_MULT:
-        abort("Number too large to shift: %s" % a)
-    if b > MAX_EXP:
-        abort("Shift amount too large: %s" % b)
-
-def check_mult(*nums):
-    """Check if multiplication operands are too big; if so, abort"""
-    for a in nums:
-        if abs(a) > MAX_MULT:
-            abort("Number too large to multiply: %s" % a)
-
-def check_exp(a, b):
-    """Check if exponentiation operands are too big; if so, abort"""
-    if abs(a) > MAX_MULT:
-        abort("Number too large for exponent base: %s" % a)
-    if b > MAX_EXP:
-        abort("Number too large for exponent: %s" % b)
-    
-def check_fact(a):
-    """Check if factorial operand is too big; if so, abort"""
-    if a > MAX_FACT:
-        abort("Factorial too large: %d" % a)
-    
-
-##############################################################
-# Token Patterns
+# Lexical Analysis
 ##############################################################
 
 # List of all tokens, required by PLY
 tokens = (
-    'FLOAT', 'INT', 'ID', 'RSHIFT', 'LSHIFT', 'EXP', 'OREQ', 'XOREQ', 'ANDEQ',
+    'AND', 'OR', 'NOT', 'RSHIFT', 'LSHIFT', 'EXP', 'OREQ', 'XOREQ', 'ANDEQ',
     'LSHIFTEQ', 'RSHIFTEQ', 'PLUSEQ', 'MINUSEQ', 'TIMESEQ', 'DIVEQ', 'MODEQ',
-    'EXPEQ'
+    'EXPEQ', 'LTEQ', 'GTEQ', 'NEQ', 'EQ', 'FLOAT', 'INT', 'ID'
 )
 
 # single-character tokens (most operators)
-literals = ';=,|^&+-*/%~!()'
+literals = ';=,<>|^&+-*/%~!()'
 
-# two-character operators
+# multi-character operators
+t_LTEQ = '<='
+t_GTEQ = '>='
+t_NEQ = '!='
+t_EQ = '=='
 t_RSHIFT = r'>>'
 t_LSHIFT = r'<<'
 t_EXP = r'\*\*'
-
-# extra assignment operators
 t_OREQ = r'\|='
 t_XOREQ = r'\^='
 t_ANDEQ = r'&='
@@ -120,8 +77,19 @@ t_DIVEQ = r'/='
 t_MODEQ = r'%='
 t_EXPEQ = r'\*\*='
 
+reserved = {
+    'or': 'OR',
+    'and': 'AND',
+    'not': 'NOT',
+}
+
 # regex for identifiers
-t_ID = r'[a-zA-Z_][a-zA-Z0-9_]*'
+def t_ID(t):
+    r'[a-zA-Z_][a-zA-Z0-9_]*'
+    if t.value in reserved:
+        t.type = reserved[t.value]
+    return t
+        
 
 # float token; the regex ought to be pretty close to python's float format
 def t_FLOAT(t):
@@ -141,10 +109,6 @@ def t_INT(t):
     else:
         t.value = int(t.value)
     return t
-
-# just abort when encountering an illegal character
-def t_error(t):
-    abort("Illegal character '%s'" % t.value[0])
 
 # ignore all whitespace
 t_ignore = ' \t\r\n'
@@ -257,10 +221,53 @@ def p_assign_expeq(p):
     p[0] = variables[name]
 
 def p_expr(p):
-    'expr : ort'
+    'expr : bort'
     p[0] = p[1]
-def p_expr_or(p):
-    'expr : expr "|" ort'
+def p_expr_bor(p):
+    'expr : expr OR bort'
+    p[0] = p[1] or p[3]
+
+def p_bort(p):
+    'bort : bandt'
+    p[0] = p[1]
+def p_bort_band(p):
+    'bort : bort AND bandt'
+    p[0] = p[1] and p[3]
+
+def p_bandt(p):
+    'bandt : bnott'
+    p[0] = p[1]
+def p_bandt_bnot(p):
+    'bandt : NOT bandt'
+    p[0] = not p[2]
+
+def p_bnott(p):
+    'bnott : compt'
+    p[0] = p[1]
+def p_bnott_lt(p):
+    'bnott : bnott "<" compt'
+    p[0] = p[1] < p[3]
+def p_bnott_lteq(p):
+    'bnott : bnott LTEQ compt'
+    p[0] = p[1] <= p[3]
+def p_bnott_gt(p):
+    'bnott : bnott ">" compt'
+    p[0] = p[1] > p[3]
+def p_bnott_gteq(p):
+    'bnott : bnott GTEQ compt'
+    p[0] = p[1] >= p[3]
+def p_bnott_eq(p):
+    'bnott : bnott EQ compt'
+    p[0] = p[1] == p[3]
+def p_bnott_neq(p):
+    'bnott : bnott NEQ compt'
+    p[0] = p[1] != p[3]
+
+def p_compt(p):
+    'compt : ort'
+    p[0] = p[1]
+def p_compt_or(p):
+    'compt : compt "|" ort'
     p[0] = p[1] | p[3]
 
 def p_ort(p):
@@ -367,8 +374,64 @@ def p_args_expr(p):
     'args : expr'
     p[0] = (p[1],)
 
+
+##############################################################
+# Error Handling
+##############################################################
+
+def t_error(t):
+    abort("Illegal character '%s'" % t.value[0])
+
 def p_error(t):
-    abort("Syntax error at '%s'" % t.value) 
+    if t is not None:
+        abort("Syntax error at '%s'" % t.value) 
+    else:
+        abort("Syntax error.")
+
+class CalculationException(Exception):
+    """An exception that occurs while evaluating an expression."""
+    pass
+
+def abort(msg):
+    """Raise a CalculationException with given message"""
+    raise CalculationException(msg)
+
+def check_var(name):
+    """Check if a variable exists; if not, abort"""
+    if name not in variables:
+        abort("Unknown variable: %s" % name)
+
+def check_func(name):
+    """Check if a function exists; if not, abort"""
+    if name not in funcs:
+        abort("Unknown function: %s" % name)
+
+def check_lshift(a, b):
+    """Check if left shift operands are too big; if so, abort"""
+    # a << b is equivalent to a * (2**b), so treat a as mulitplicand and b as exponent
+    if a > MAX_MULT:
+        abort("Number too large to shift: %s" % a)
+    if b > MAX_EXP:
+        abort("Shift amount too large: %s" % b)
+
+def check_mult(*nums):
+    """Check if multiplication operands are too big; if so, abort"""
+    for a in nums:
+        if abs(a) > MAX_MULT:
+            abort("Number too large to multiply: %s" % a)
+
+def check_exp(a, b):
+    """Check if exponentiation operands are too big; if so, abort"""
+    if abs(a) > MAX_MULT:
+        abort("Number too large for exponent base: %s" % a)
+    if b > MAX_EXP:
+        abort("Number too large for exponent: %s" % b)
+    
+def check_fact(a):
+    """Check if factorial operand is too big; if so, abort"""
+    if a > MAX_FACT:
+        abort("Factorial too large: %d" % a)
+
 
 ##############################################################
 # Module Code
