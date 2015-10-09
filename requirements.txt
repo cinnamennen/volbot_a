@@ -15,6 +15,7 @@ jaraco.text==1.4
 jaraco.timing==1.1.5
 markovify==0.2.1
 more-itertools==2.2
+ply
 praw==3.2.1
 pymongo==3.0.3
 pytz==2015.4
