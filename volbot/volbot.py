@@ -162,6 +162,14 @@ class VolBot(irc.bot.SingleServerIRCBot):
             "message": msg,
         })
 
+    @Trigger(r".*")
+    def on_calc(self, sender, channel, msg):
+        """Trigger handler for calculations"""
+        try:
+            self.privmsg(channel, str(calc.eval(msg)))
+        except calc.CalculationException:
+            pass
+
     @Trigger(r"^.*\b[iI][rR][cC]\b.*$")
     def on_talks_about_irc(self, sender, channel, msg):
         """Trigger handler for when someone says IRC (based on inside joke)"""
