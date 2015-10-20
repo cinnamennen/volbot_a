@@ -162,7 +162,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
             "message": msg,
         })
 
-    @Trigger(r".*")
+    @Trigger(r"^.*;\s*$")
     def on_calc(self, sender, channel, msg):
         """Trigger handler for calculations"""
         try:
@@ -202,7 +202,10 @@ class VolBot(irc.bot.SingleServerIRCBot):
         """Trigger handler for table flipping"""
         lang, prob = langid.classify(msg)
         if lang != 'en' and prob > 0.95:
-            self.privmsg(channel, self.translator.translate(msg, 'en'))
+            try:
+                self.privmsg(channel, self.translator.translate(msg, 'en'))
+            except:
+                pass
 
     @Trigger("^\s*ls\s*$")
     def on_ls(self, sender, channel, msg):
