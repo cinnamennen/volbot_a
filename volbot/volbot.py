@@ -337,8 +337,40 @@ class VolBot(irc.bot.SingleServerIRCBot):
         # otherwise, give help on that specific command
         helpcmd = args[0]
         if helpcmd.lower() in self.commands:
-            docs = self.commands[helpcmd.lower()].__doc__
-            self.privmsg(channel, docs)
+            cmd = self.commands[helpcmd.lower()]
+            self.send_usage(channel, cmd)
+
+    @Command("roll", EVERYONE)
+    def cmd_roll(self, sender, channel, cmd, args):
+        """roll [x]d<y>\nRoll a y sided die x times."""
+        if len(args) == 0:
+            self.send_usage(channel, cmd_roll)
+            return
+        parts = args[0].split('d')
+        if len(parts) != 2:
+            self.send_usage(channel, cmd_roll)
+            return
+
+        try:
+            if parts[0] == '':
+                rolls = 1
+                sides = int(parts[1])
+            else:
+                rolls, sides = [int(x) for x in parts]
+        except ValueError:
+            self.send_usage(channel, cmd_roll)
+            return
+
+        if rolls < 0 or sides < 1:
+            self.send_usage(channel, cmd_roll)
+            return
+
+        if rolls > 100000:
+            self.privmsg(channel, "too many rolls!")
+            return
+            
+        n = sum(random.randint(1, sides) for _ in range(rolls))
+        self.privmsg(channel, str(n))
 
     @Command("shakespeare", EVERYONE)
     def cmd_shakespeare(self, sender, channel, cmd, args):
@@ -600,6 +632,10 @@ class VolBot(irc.bot.SingleServerIRCBot):
                 pattern = getattr(obj, "trigger_pattern")
                 self.log('registered trigger "%s" to %s()' % (pattern, obj.__name__))
                 self.triggers.append((re.compile(pattern), obj))
+
+    def send_usage(channel, cmd):
+        docs = cmd.__doc__
+        self.privmsg(channels, docs)
 
     def privmsg(self, target, msg):
         """Send a message to a target, split by newlines automatically"""
