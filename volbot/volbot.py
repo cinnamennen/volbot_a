@@ -376,7 +376,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
     def cmd_banana(self, sender, channel, cmd, args):
         """banana <name>\nbanana someone"""
         if len(args) != 1:
-            self.send_usage(channel, cmd_banana)
+            self.send_usage(channel, self.cmd_banana)
             return
         name = args[0]
         short_name = name[1:]
