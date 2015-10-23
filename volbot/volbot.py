@@ -344,11 +344,11 @@ class VolBot(irc.bot.SingleServerIRCBot):
     def cmd_roll(self, sender, channel, cmd, args):
         """roll [x]d<y>\nRoll a y sided die x times."""
         if len(args) == 0:
-            self.send_usage(channel, cmd_roll)
+            self.send_usage(channel, self.cmd_roll)
             return
         parts = args[0].split('d')
         if len(parts) != 2:
-            self.send_usage(channel, cmd_roll)
+            self.send_usage(channel, self.cmd_roll)
             return
 
         try:
@@ -358,11 +358,11 @@ class VolBot(irc.bot.SingleServerIRCBot):
             else:
                 rolls, sides = [int(x) for x in parts]
         except ValueError:
-            self.send_usage(channel, cmd_roll)
+            self.send_usage(channel, self.cmd_roll)
             return
 
         if rolls < 0 or sides < 1:
-            self.send_usage(channel, cmd_roll)
+            self.send_usage(channel, self.cmd_roll)
             return
 
         if rolls > 100000:
