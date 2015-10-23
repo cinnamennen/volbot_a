@@ -636,7 +636,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
     def send_usage(self, channel, cmd):
         """Send a command's usage"""
         docs = cmd.__doc__
-        self.privmsg(channels, docs)
+        self.privmsg(channel, docs)
 
     def privmsg(self, target, msg):
         """Send a message to a target, split by newlines automatically"""
