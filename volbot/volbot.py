@@ -379,7 +379,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
             self.send_usage(channel, self.cmd_banana)
             return
         name = args[0]
-        short_name = name[1:]
+        short_name = name.lstrip('bcdfghjklmnpqrstvwxyz').lower()
 
         banana = "{name} {name} Bo B{short_name} Banana Fana Fo F{short_name}".format(**locals())
 
