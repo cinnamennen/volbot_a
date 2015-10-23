@@ -344,11 +344,11 @@ class VolBot(irc.bot.SingleServerIRCBot):
     def cmd_roll(self, sender, channel, cmd, args):
         """roll [x]d<y>\nRoll a y sided die x times."""
         if len(args) == 0:
-            self.send_usage(channel, cmd_roll)
+            self.send_usage(channel, self.cmd_roll)
             return
         parts = args[0].split('d')
         if len(parts) != 2:
-            self.send_usage(channel, cmd_roll)
+            self.send_usage(channel, self.cmd_roll)
             return
 
         try:
@@ -358,11 +358,11 @@ class VolBot(irc.bot.SingleServerIRCBot):
             else:
                 rolls, sides = [int(x) for x in parts]
         except ValueError:
-            self.send_usage(channel, cmd_roll)
+            self.send_usage(channel, self.cmd_roll)
             return
 
         if rolls < 0 or sides < 1:
-            self.send_usage(channel, cmd_roll)
+            self.send_usage(channel, self.cmd_roll)
             return
 
         if rolls > 100000:
@@ -646,9 +646,10 @@ class VolBot(irc.bot.SingleServerIRCBot):
                 self.log('registered trigger "%s" to %s()' % (pattern, obj.__name__))
                 self.triggers.append((re.compile(pattern), obj))
 
-    def send_usage(channel, cmd):
+    def send_usage(self, channel, cmd):
+        """Send a command's usage"""
         docs = cmd.__doc__
-        self.privmsg(channels, docs)
+        self.privmsg(channel, docs)
 
     def privmsg(self, target, msg):
         """Send a message to a target, split by newlines automatically"""
