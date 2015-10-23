@@ -1,4 +1,5 @@
 import math
+import random
 
 import ply.lex
 import ply.yacc
@@ -19,6 +20,7 @@ funcs = {
     'float': float,
     'bool': bool,
     'pow': pow,
+    'rand': random.randint,
     'log2': lambda x: math.log(x,2),
 }
 
