@@ -633,7 +633,8 @@ class VolBot(irc.bot.SingleServerIRCBot):
                 self.log('registered trigger "%s" to %s()' % (pattern, obj.__name__))
                 self.triggers.append((re.compile(pattern), obj))
 
-    def send_usage(channel, cmd):
+    def send_usage(self, channel, cmd):
+        """Send a command's usage"""
         docs = cmd.__doc__
         self.privmsg(channels, docs)
 
