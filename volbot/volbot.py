@@ -372,6 +372,19 @@ class VolBot(irc.bot.SingleServerIRCBot):
         n = sum(random.randint(1, sides) for _ in range(rolls))
         self.privmsg(channel, str(n))
 
+    @Command("banana", EVERYONE)
+    def cmd_banana(self, sender, channel, cmd, args):
+        """banana <name>\nbanana someone"""
+        if len(args) != 1:
+            self.send_usage(channel, cmd_banana)
+            return
+        name = args[0]
+        short_name = name[1:]
+
+        banana = "{name} {name} Bo B{short_name} Banana Fana Fo F{short_name}".format(**locals())
+
+        self.privmsg(channel, banana)
+
     @Command("shakespeare", EVERYONE)
     def cmd_shakespeare(self, sender, channel, cmd, args):
         """shakespeare\nGenerate some classic literature.."""
