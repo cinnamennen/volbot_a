@@ -217,11 +217,16 @@ class VolBot(irc.bot.SingleServerIRCBot):
         """Trigger for what are those"""
         self.privmsg(channel, "WHAT ARE THOOOOOOOOOOSE")
 
-    @Trigger(r".*rick.*")
+    @Trigger(r"(?i).*\brick\b.*")
     def on_rick(self, sender, channel, msg):
         """Rick roll 'em"""
         self.privmsg(channel, "NEVER GONNA GIVE YOU UP")
         self.privmsg(channel, "NEVER GONNA LET YOU DOWN")
+
+    @Trigger(r".*sex.*")
+    def on_bang(self, sender, channel, msg):
+        """How I met your mother reference"""
+        self.privmsg(channel, "I said a-bang. bang. bangity bang. I said a-bang bang bangity bang.")
 
     @Trigger(r"^.*https?://[^\s]+.*$")
     def on_link(self, sender, channel, msg):
