@@ -223,7 +223,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
         self.privmsg(channel, "NEVER GONNA GIVE YOU UP")
         self.privmsg(channel, "NEVER GONNA LET YOU DOWN")
 
-    @Trigger(r".*sex.*")
+    @Trigger(r"(?i).*\bsex\b.*")
     def on_bang(self, sender, channel, msg):
         """How I met your mother reference"""
         self.privmsg(channel, "I said a-bang. bang. bangity bang. I said a-bang bang bangity bang.")
