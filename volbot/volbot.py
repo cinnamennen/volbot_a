@@ -217,6 +217,12 @@ class VolBot(irc.bot.SingleServerIRCBot):
         """Trigger for what are those"""
         self.privmsg(channel, "WHAT ARE THOOOOOOOOOOSE")
 
+    @Trigger(r"rick")
+    def on_rick(self, sender, channel, msg):
+        """Rick roll 'em"""
+        self.privmsg(channel, "NEVER GONNA GIVE YOU UP")
+        self.privmsg(channel, "NEVER GONNA LET YOU DOWN")
+
     @Trigger(r"^.*https?://[^\s]+.*$")
     def on_link(self, sender, channel, msg):
         """Trigger handler for website links"""
