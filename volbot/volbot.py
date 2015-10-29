@@ -144,7 +144,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
                         handler(nick, channel, msg)
         except UnicodeEncodeError:
             traceback.print_exc()
-        except UnicodeDecodeError:
+        except:
             traceback.print_exc()
 
     def log(self, msg):
@@ -187,7 +187,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
     @Trigger(r".*\b[aA]y+\b")
     def on_ayy(self, sender, channel, msg):
         """Trigger handler for ayy, lmao"""
-        ayy = re.findall(r".*\bay+\b", msg)
+        ayy = re.findall(r".*\b[Aa]y+\b", msg)
         message = 'lma' + (ayy[0].count('y') - 1) * 'o'
         self.privmsg(channel, message)
 
@@ -375,13 +375,16 @@ class VolBot(irc.bot.SingleServerIRCBot):
     @Command("banana", EVERYONE)
     def cmd_banana(self, sender, channel, cmd, args):
         """banana <name>\nbanana someone"""
-        if len(args) != 1:
+        if len(args) < 1:
             self.send_usage(channel, self.cmd_banana)
             return
         name = args[0]
+        consonants = 'bcdfghjklmnpqrstvwxyz'
+        for c in consonants:
+            name = name.replace('y'+c, 'i'+c)
         short_name = name.lstrip('bcdfghjklmnpqrstvwxyz').lower()
 
-        banana = "{name} {name} Bo B{short_name} Banana Fana Fo F{short_name}".format(**locals())
+        banana = "{name} {name} bo b{short_name} banana fana fo f{short_name}".format(**locals())
 
         self.privmsg(channel, banana)
 
