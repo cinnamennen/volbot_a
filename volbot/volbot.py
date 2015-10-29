@@ -217,7 +217,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
         """Trigger for what are those"""
         self.privmsg(channel, "WHAT ARE THOOOOOOOOOOSE")
 
-    @Trigger(r"rick")
+    @Trigger(r".*rick.*")
     def on_rick(self, sender, channel, msg):
         """Rick roll 'em"""
         self.privmsg(channel, "NEVER GONNA GIVE YOU UP")
