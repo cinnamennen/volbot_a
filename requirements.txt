@@ -13,6 +13,7 @@ jaraco.itertools==1.5.1
 jaraco.logging==1.2
 jaraco.text==1.4
 jaraco.timing==1.1.5
+langid=1.1.5
 markovify==0.2.1
 more-itertools==2.2
 ply
