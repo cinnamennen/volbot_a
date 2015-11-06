@@ -4,6 +4,7 @@
 # Python Standard Library
 import collections
 import cPickle
+import hashlib
 import os
 import random
 import re
@@ -82,6 +83,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
         self.translator = microsofttranslator.Translator('volbot', '5n6uDST15barp2ScGZe/ylNW4j388lZeooy+tbAfqo4=')
 
         self.ignored = {'volbot', 'stuessbot'}
+        self.translate_settings = collections.defaultdict(lambda : "auto")
 
         # setup commands and triggers
         self.commands = {}
@@ -201,9 +203,11 @@ class VolBot(irc.bot.SingleServerIRCBot):
     def on_lang(self, sender, channel, msg):
         """Trigger handler for table flipping"""
         lang, prob = langid.classify(msg)
-        if lang != 'en' and prob > 0.95:
+        needs_translate = lang == 'es'
+        setting = self.translate_settings[sender]
+        if setting  == 'on'  or (setting == 'auto' and needs_translate):
             try:
-                self.privmsg(channel, self.translator.translate(msg, 'en'))
+                self.privmsg(channel, "%s: %s" % (sender, self.translator.translate(msg, 'en')))
             except:
                 pass
 
@@ -254,6 +258,28 @@ class VolBot(irc.bot.SingleServerIRCBot):
             self.privmsg(channel, str(calc.eval(msg)))
         except calc.CalculationException as e:
             self.privmsg(channel, str(e))
+
+    @Command("at", EVERYONE)
+    def cmd_at(self, sender, channel, cmd, args):
+        """at on|off|auto\nChange automatic translation settings for yourself."""
+        if len(args) < 1 or args[0].lower() not in ['on', 'off', 'auto']:
+            self.send_usage(self.cmd_at)
+            return
+        setting = args[0].lower()
+        self.translate_settings[sender] = setting
+        self.privmsg(channel, "Translation for user %s is now: %s" % (sender,setting))
+
+    @Command("md5", EVERYONE)
+    def cmd_md5(self, sender, channel, cmd, args):
+        """md5 <string>\nMD5 a string."""
+        msg = ' '.join(args)
+        self.privmsg(channel, hashlib.md5(msg).hexdigest())
+
+    @Command("sha1", EVERYONE)
+    def cmd_sha1(self, sender, channel, cmd, args):
+        """sha1 <string>\nSHA1 a string."""
+        msg = ' '.join(args)
+        self.privmsg(channel, hashlib.sha1(msg).hexdigest())
 
     @Command("curse", EVERYONE)
     def cmd_curse(self, sender, channel, cmd, args):
@@ -389,11 +415,11 @@ class VolBot(irc.bot.SingleServerIRCBot):
         if len(args) < 1:
             self.send_usage(channel, self.cmd_banana)
             return
-        name = args[0]
+        name = args[0].lower()
         consonants = 'bcdfghjklmnpqrstvwxyz'
         for c in consonants:
             name = name.replace('y'+c, 'i'+c)
-        short_name = name.lstrip('bcdfghjklmnpqrstvwxyz').lower()
+        short_name = name.lstrip(consonants)
 
         banana = "{name} {name} bo b{short_name} banana fana fo f{short_name}".format(**locals())
 
