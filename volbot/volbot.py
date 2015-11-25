@@ -236,12 +236,16 @@ class VolBot(irc.bot.SingleServerIRCBot):
     def on_link(self, sender, channel, msg):
         """Trigger handler for website links"""
 
+        headers = {
+            'User-Agent': 'python:volbot:1.0',
+        }
+
         # find all links in the message
         links = re.findall(r"https?://[^\s]+", msg)
         for link in links:
             # scrape the title of the webpage and send it to the channel
             try:
-                resp = requests.get(link).text
+                resp = requests.get(link, headers=headers).text
                 soup = bs4.BeautifulSoup(resp, 'html.parser')
                 title = soup.find('title').get_text().strip()
                 okchars = letters + digits + punctuation + ' '
