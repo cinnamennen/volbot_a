@@ -83,7 +83,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
         self.translator = microsofttranslator.Translator('volbot', '5n6uDST15barp2ScGZe/ylNW4j388lZeooy+tbAfqo4=')
 
         self.ignored = {'volbot', 'stuessbot'}
-        self.translate_settings = collections.defaultdict(lambda : "auto")
+        self.translate_settings = collections.defaultdict(lambda : "off")
 
         # setup commands and triggers
         self.commands = {}
