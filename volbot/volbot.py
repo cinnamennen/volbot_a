@@ -93,7 +93,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
     def load_volify(self):
         messages = self.db.messages.find(
             {
-                "nick": {"$ne": self._nickname},
+                "nick": {"$ne": self._nickname.lower()},
                 "message": {"$regex": "^[^!].*$"},
             },
             limit=10000,
@@ -160,7 +160,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
         self.db.messages.insert_one({
             "time": time.time(),
             "channel": chan,
-            "nick": nick,
+            "nick": nick.lower(),
             "message": msg,
         })
 
@@ -338,7 +338,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
 
         messages = self.db.messages.find(
             {
-                "nick": nick,
+                "nick": nick.lower(),
                 "message": {"$regex": "^[^!].*$"},
             },
             limit=10000,
@@ -442,7 +442,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
         else:
             nick = sender
 
-        nick_messages = self.db.messages.find({"nick": nick})
+        nick_messages = self.db.messages.find({"nick": nick.lower()})
         all_messages = self.db.messages.find()
         nick_count = nick_messages.count()
         all_count = all_messages.count()
@@ -496,7 +496,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
             try:
                 messages = self.db.messages.find(
                     {
-                        "nick": target,
+                        "nick": target.lower(),
                         "message": {"$regex": "^[^!].*$"}
                     },
                     limit=1, 
@@ -651,7 +651,7 @@ class VolBot(irc.bot.SingleServerIRCBot):
         if len(args) > 1:
             target = args[1]
 
-            messages = self.db.messages.find({"nick": target}, limit=num, sort=[("time", pymongo.DESCENDING)])
+            messages = self.db.messages.find({"nick": target.lower()}, limit=num, sort=[("time", pymongo.DESCENDING)])
 
             if target == sender:
                 messages.skip(1)
