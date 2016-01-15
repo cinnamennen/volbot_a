@@ -30,8 +30,6 @@ from responses import get_resp
 from .urbandict import urbandict
 from .settings import *
 
-
-
 class Command:
     """Decorator that automatically registers functions as command handlers"""
 
@@ -583,37 +581,6 @@ class VolBot(irc.bot.SingleServerIRCBot):
         except wikipedia.exceptions.WikipediaException:
             self.privmsg(channel, "Sorry, can't find that.")
 
-    def do_command(self, e, target, cmd, args):
-        """Find the appropriate command handler and call it"""
-        nick = e.source.nick
-        conn = self.connection
-
-        # check if command exists
-        if cmd.lower() in self.commands:
-            # if so, look up and call the command handler
-            handler = self.commands[cmd.lower()]
-
-            chan = self.channels[self.channel]
-
-            user_level = 0
-            if chan.is_oper(nick):
-                user_level = 100
-            elif chan.is_voiced(nick):
-                user_level = 50
-
-            if user_level >= handler.cmd_perms:
-                try:
-                    handler(nick, target, cmd, args)
-                except:
-                    self.privmsg(target,get_resp("internal_error"))
-                    traceback.print_exc()
-
-            else:
-                self.privmsg(target, get_resp("access_denied"))
-        else:
-            # otherwise print an error message
-            self.privmsg(target, get_resp("unknown_command"))
-
     @Command("ud", EVERYONE)
     def cmd_ud(self, sender, channel, cmd, args):
         """ud [word]\nLook up a word on Urban Dictionary."""
@@ -745,6 +712,8 @@ class VolBot(irc.bot.SingleServerIRCBot):
             user_level = 0
             if chan.is_oper(nick):
                 user_level = 100
+            elif nick == OWNER_NICK:
+                user_level = 150
             elif chan.is_voiced(nick):
                 user_level = 50
 
@@ -764,8 +733,8 @@ class VolBot(irc.bot.SingleServerIRCBot):
 
 def main():
     # get command line args
-    if len(sys.argv) != 4:
-        print("Usage: testbot <server[:port]> <channel> <nickname>")
+    if len(sys.argv) != 5:
+        print("Usage: testbot <server[:port]> <channel> <nickname> <owner_nickname>")
         sys.exit(1)
 
     s = sys.argv[1].split(":", 1)
@@ -780,6 +749,8 @@ def main():
         port = 6667
     channel = sys.argv[2]
     nickname = sys.argv[3]
+    global OWNER_NICK
+    OWNER_NICK = sys.argv[4]
 
     # run the bot
     bot = VolBot(channel, nickname, server, port)
